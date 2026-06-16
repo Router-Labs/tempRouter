@@ -30,8 +30,16 @@ let MODE: PrivacyMode = 'stub'
 
 const app = new Hono()
 
-app.get('/', (c) =>
-  c.json({
+app.get('/', (c) => {
+  // Humans get the branded landing page; agents/curl get machine JSON.
+  if ((c.req.header('accept') ?? '').includes('text/html')) {
+    try {
+      return c.html(readFileSync(new URL('../public/index.html', import.meta.url), 'utf8'))
+    } catch {
+      /* fall through to JSON */
+    }
+  }
+  return c.json({
     name: 'tempRouter',
     what: 'MPP-paid, attestation-gated private AI inference on Tempo',
     mode: MODE,
@@ -43,8 +51,8 @@ app.get('/', (c) =>
       'GET /openapi.json': 'MPP service discovery',
     },
     recipient: config.recipient,
-  }),
-)
+  })
+})
 
 // ── Blind passthrough to the enclave (free; agent verifies BEFORE paying) ─────
 app.get('/tee/attestation', async (c) => c.json(await fetchAttestation()))
