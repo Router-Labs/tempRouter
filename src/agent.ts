@@ -68,16 +68,23 @@ async function main() {
     process.stdout.write(`\r  💸 [units paid: ${units} | ${(units * Number(config.pricePerUnit)).toFixed(4)} pathUSD]`)
   }
   console.log()
-  const receipt = await manager.close()
-  console.log(`channel closed${receipt ? ' (settled on-chain)' : ''}.`)
 
-  // 5. POST-PAY receipt verify (bonus) + decrypt.
+  // 5. POST-PAY receipt verify (bonus) + decrypt. Do this BEFORE closing — the
+  // data is already paid for and received; channel close is cleanup.
   if (proof) {
     const v = await verifyAttestation({ response: proof, encryptedPrompt, model: MODEL })
-    console.log('\n── post-pay receipt verification ──\n' + formatReport(v))
+    console.log('── post-pay receipt verification ──\n' + formatReport(v))
   }
   const answer = await decrypt(JSON.parse(cipher), enc.ephemeralPrivateKey)
   console.log('\n🔓 decrypted answer (plaintext only ever seen by you + the attested enclave):\n' + answer)
+
+  // 6. Best-effort cooperative close (reclaims unspent deposit). Non-fatal.
+  try {
+    await manager.close()
+    console.log('\nchannel closed.')
+  } catch (e: any) {
+    console.warn(`\nchannel close failed (non-fatal, funds reclaim on timeout): ${e?.message?.split('\n')[0] ?? e}`)
+  }
 }
 
 main().catch((e) => {
