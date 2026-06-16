@@ -79,10 +79,19 @@ Discoverable on **mpp.dev/services** (GitHub PR) + **MPPScan**.
 
 ## Status
 
-- ✅ Verifier validated **end-to-end against live prod hardware** (all DCAP/binding/sig checks pass).
+**✅ Full loop VERIFIED end-to-end on Tempo testnet (2026-06-16):**
+`detect secret → pre-pay DCAP verify (real INTEL-TDX-PHALA, UpToDate) → encrypt →
+pay pathUSD on-chain (balance moves) → real Phala TDX inference → SSE stream + charge →
+decrypt to plaintext answer.`
+
+- ✅ Verifier validated against live prod hardware (DCAP + key-binding + ed25519 + quote-digest).
 - ✅ Server boots `mode=tdx-live`; discovery + landing page serve.
-- ✅ Agent path proven up to payment (pre-pay gate passes against the real enclave).
-- ⏳ Full paid stream + on-chain settle — pending a funded testnet key (faucet at the workshop).
+- ✅ Attestation-gated payment, real MPP session on Tempo Moderato, real pathUSD spent.
+- ✅ Funded testnet wallet (`mppx account temprouter`).
+
+**Open (payment-channel lifecycle polish — see [ADR-0003](docs/adr/0003-per-unit-sse-metering.md)):**
+- ⏳ Multi-unit streaming (`CHUNK_COUNT > 1`) breaks on the mid-stream voucher top-up POST; default is `chunkCount=1` (whole response = one charged unit), which completes cleanly.
+- ⏳ Cooperative `manager.close()` returns 402 (made non-fatal; deposit reclaims on timeout).
 
 See [`DESIGN.md`](DESIGN.md) for the locked design + 4-day plan, [`CONTEXT.md`](CONTEXT.md)
 for the domain glossary, and `docs/adr/` for the load-bearing decisions.
