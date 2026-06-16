@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: temprouter
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /openapi.json
+    autoDeploy: true
+    envVars:
+      # Real Phala Intel TDX enclave (public). Drives tdx-live mode.
+      - key: TEE_ENDPOINT
+        value: https://solrouter-obb4.onrender.com/tee
+      # HMAC secret for binding/verifying MPP challenges. NOT a chain key.
+      - key: MPP_SECRET_KEY
+        generateValue: true
+      # Earnings address (where pathUSD payments settle).
+      - key: TEMPO_RECIPIENT
+        value: "0xa726a1CD723409074DF9108A2187cfA19899aCF8"
+      - key: PRICE_PER_UNIT
+        value: "0.0002"
+      - key: CHUNK_COUNT
+        value: "1"
+      - key: NODE_VERSION
+        value: "22"
