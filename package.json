@@ -1,0 +1,25 @@
+{
+  "name": "temprouter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MPP-paid private AI inference server on Tempo — pay-per-token in stablecoin, no API key, no signup.",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "agent": "tsx src/agent.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.0.5",
+    "@phala/dcap-qvl": "^0.5.2",
+    "@solrouter/sdk": "^1.1.0",
+    "hono": "^4.12.25",
+    "mppx": "^0.7.0",
+    "viem": "^2.52.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  }
+}
