@@ -3,6 +3,8 @@
 > **Pay an LLM only after you can prove it never saw your prompt.**
 > MPP-paid, attestation-gated private AI inference on Tempo. — *Berlin MPP Hackathon @ Futura Camp 2026.*
 
+**🟢 Live:** https://temprouter.onrender.com · [`/openapi.json`](https://temprouter.onrender.com/openapi.json) · [`/tee/attestation`](https://temprouter.onrender.com/tee/attestation)
+
 An AI agent pays per response-chunk in **pathUSD** on Tempo — but only after it
 cryptographically verifies (Intel DCAP) that the prompt runs inside a **real Phala
 Intel TDX enclave** that can't read it. tempRouter is a **blind relay**: it forwards
