@@ -1,4 +1,11 @@
 // Central config + Tempo testnet constants (sourced from mppx defaults).
+import process from 'node:process'
+// Native .env loader (Node 20.12+), no dependency. Safe if .env is absent.
+try {
+  ;(process as any).loadEnvFile?.('.env')
+} catch {
+  /* no .env — use process env / defaults */
+}
 
 export const config = {
   port: Number(process.env.PORT ?? 8402),
@@ -10,8 +17,11 @@ export const config = {
   pricePerCall: process.env.PRICE_PER_CALL ?? '0.01', // one-time charge (non-stream)
   pricePerUnit: process.env.PRICE_PER_UNIT ?? '0.0002', // per response-chunk (session/SSE)
   // How many SSE chunks the blind relay slices the enclave's single ciphertext
-  // blob into — each chunk = one MPP voucher tick. See ADR-0001.
-  chunkCount: Number(process.env.CHUNK_COUNT ?? 24),
+  // blob into — each chunk = one MPP voucher tick. See ADR-0001/0003.
+  // Default 1: the whole response is one charged unit, which completes the loop
+  // end-to-end today. Multi-unit (>1) needs the mid-stream voucher-top-up POST
+  // handling fixed first (see ADR-0003 "open").
+  chunkCount: Number(process.env.CHUNK_COUNT ?? 1),
 
   // Real Phala Intel TDX enclave (the private upstream). When unset → stub mode.
   teeEndpoint: (process.env.TEE_ENDPOINT ?? '').replace(/\/$/, ''),

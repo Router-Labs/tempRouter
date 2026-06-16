@@ -1,7 +1,12 @@
 // tempRouter — MPP-paid, attestation-gated private inference on Tempo.
 // Agent-only. Blind relay (ADR-0001) in front of the real Phala Intel TDX enclave.
-// Payment is native Tempo/pathUSD via mppx; the 402 challenge binds sha256(tdxQuote)
-// into externalId so the voucher settles against a named attested enclave (ADR-0002).
+// Payment is native Tempo/pathUSD via mppx; the session challenge binds the stable
+// enclave key into `meta` so the voucher settles against a named attested enclave (ADR-0002).
+//
+// Streaming follows mpp.dev/guides/streamed-payments + mppx's own hono middleware
+// (src/middlewares/hono.ts): gate 402 → ack management requests with `withReceipt()`
+// (no args) → else run inference and meter via an async generator that calls
+// `await stream.charge()` before each yielded chunk.
 
 import { serve as honoServe } from '@hono/node-server'
 import { Hono } from 'hono'
@@ -18,15 +23,18 @@ const mppx = Mppx.create({
   methods: [
     tempo({
       recipient: config.recipient,
-      testnet: true, // Tempo Moderato (42431), currency pathUSD
+      testnet: true, // Tempo Moderato, currency pathUSD
+      chainId: tempoTestnet.chainId, // 42431 — REQUIRED: session intent else defaults to mainnet 4217
       store: Store.memory(),
-      sse: true, // enable per-unit SSE metering on the session method
+      sse: true, // per-unit SSE metering on the session method
     }),
   ],
   secretKey: config.secretKey,
 })
 
 let MODE: PrivacyMode = 'stub'
+mppx.onChallengeCreated((ctx) => console.log(`[challenge] ${ctx.method?.intent}`))
+mppx.onPaymentFailed((ctx) => console.log(`[payfail] ${ctx.error?.message ?? ctx.error}`))
 
 const app = new Hono()
 
@@ -60,39 +68,51 @@ app.get('/tee/public-key', async (c) => c.json(await fetchTeePublicKeyRaw()))
 
 // ── Per-unit attested private inference (session + SSE metering) ──────────────
 app.post('/v1/chat/completions/stream', async (c) => {
-  // Bind payment to the live enclave quote: externalId = sha256(tdxQuote).
+  // Bind payment to the STABLE attested enclave identity (teePublicKeySha256). The
+  // quote bytes change per call, but this key is constant across the challenge→pay
+  // →retry cycle. The agent verifies the same key pre-pay (ADR-0002).
   const att = await fetchAttestation()
-  const externalId = sha256hex(JSON.stringify(att?.tdxQuote ?? null))
+  const enclaveId = att?.teePublicKeySha256 ?? sha256hex(JSON.stringify(att?.tdxQuote ?? null))
 
-  // mppx issues / verifies the TIP-1034 session challenge (HMAC-binds externalId).
-  // Bind the quote digest via `meta` (HMAC-signed into the challenge opaque).
-  // NB: `externalId` is a charge-intent field; the session intent binds via meta.
   const result = await mppx.session({
     amount: config.pricePerUnit,
     unitType: 'response-chunk',
     description: 'Private inference in a real Phala Intel TDX enclave',
-    meta: { teeQuoteDigest: externalId },
+    meta: { enclaveKey: enclaveId },
+    suggestedDeposit: config.maxDeposit, // fund once with headroom; fewer mid-stream top-ups
   })(c.req.raw.clone())
 
-  if (result.status === 402) return result.challenge // a 402 Response with the challenge
+  if (result.status === 402) return result.challenge
 
-  // Paid. Settlement re-check: the enclave must not have rotated since the challenge.
-  const liveAtt = await fetchAttestation()
-  if (sha256hex(JSON.stringify(liveAtt?.tdxQuote ?? null)) !== externalId) {
-    return c.json({ error: 'enclave_quote_rotated', detail: 'attested quote changed after challenge; refusing to serve' }, 409)
+  // Management requests (top-up / voucher) are acked with withReceipt() and NO args
+  // (canonical — mppx/middlewares/hono.ts). It throws MissingReceiptResponseError for
+  // a resource request, which we catch to proceed with inference.
+  try {
+    return await result.withReceipt()
+  } catch (e) {
+    if (!Mppx.isMissingReceiptResponseError(e)) throw e
   }
 
-  const { encryptedPrompt, model } = (await c.req.raw.json()) as { encryptedPrompt: string; model?: string }
-  const tee = await teeProcess(encryptedPrompt, model ?? config.upstreamModel)
+  // Resource request: run the attested private inference + meter the stream.
+  try {
+    const { encryptedPrompt, model } = (await c.req.raw.json()) as { encryptedPrompt: string; model?: string }
+    console.log(`[stream] paid → teeProcess (prompt ${encryptedPrompt?.length ?? 0} bytes)`)
+    const tee = await teeProcess(encryptedPrompt, model ?? config.upstreamModel)
+    console.log(`[stream] tee ok → encryptedResponse ${tee.encryptedResponse?.length ?? 0} bytes`)
 
-  // Meter: each ciphertext chunk = one voucher tick. Final frame carries the receipt.
-  const chunks = chunk(tee.encryptedResponse, config.chunkCount)
-  const proofFrame = PROOF_SENTINEL + JSON.stringify({ attestation: tee.attestation, encryptionProof: tee.encryptionProof })
-  async function* gen() {
-    for (const ch of chunks) yield ch
-    yield proofFrame
+    const chunks = chunk(tee.encryptedResponse, config.chunkCount)
+    const proofFrame = PROOF_SENTINEL + JSON.stringify({ attestation: tee.attestation, encryptionProof: tee.encryptionProof })
+    return await result.withReceipt(async function* (stream: { charge(): Promise<void> }) {
+      for (const ch of chunks) {
+        await stream.charge() // reserve voucher headroom; waits (emits need-voucher) if exhausted
+        yield ch
+      }
+      yield proofFrame // receipt metadata — not a billable unit
+    })
+  } catch (e: any) {
+    console.error('[stream] ERROR:', e?.message ?? e)
+    return c.json({ error: 'stream_failed', detail: String(e?.message ?? e) }, 500)
   }
-  return result.withReceipt(gen()) // mppx wraps as metered SSE + payment-receipt
 })
 
 // ── MPP service discovery (mpp.dev/services + MPPScan) ───────────────────────
