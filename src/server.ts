@@ -13,16 +13,28 @@ import { Hono } from 'hono'
 import { Mppx, tempo, Store } from 'mppx/server'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
+import { privateKeyToAccount } from 'viem/accounts'
 import { config, resolveMode, tempoTestnet, type PrivacyMode } from './config.js'
 import { teeProcess, fetchAttestation, fetchTeePublicKeyRaw, chunk } from './upstream.js'
 
 const sha256hex = (s: string) => createHash('sha256').update(s).digest('hex')
 const PROOF_SENTINEL = '__TEMPROUTER_PROOF__' // final SSE frame carrying the post-pay receipt
 
+// When the payee key is configured, the server signs the on-chain CLOSE as the
+// recipient (settlement sender must equal the channel payee), paying the tx fee from
+// its own pathUSD. Without it, cooperative close 402s and the deposit reclaims on
+// timeout (ADR-0003). NB: do NOT set `feePayer: true` — that makes the server sponsor
+// the PAYER's channel-open tx, which trips Tempo's sponsor maxFeePerGas policy.
+const settlementAccount = config.recipientPrivateKey ? privateKeyToAccount(config.recipientPrivateKey) : undefined
+if (settlementAccount && config.recipient.toLowerCase() !== settlementAccount.address.toLowerCase())
+  console.warn(`⚠️  TEMPO_RECIPIENT (${config.recipient}) ≠ settlement account (${settlementAccount.address}); paying out to the settlement account.`)
+
 const mppx = Mppx.create({
   methods: [
     tempo({
-      recipient: config.recipient,
+      // An `account` makes the server sign settlement as the payee AND become the
+      // recipient; otherwise fall back to the address-only recipient (no cooperative close).
+      ...(settlementAccount ? { account: settlementAccount } : { recipient: config.recipient }),
       testnet: true, // Tempo Moderato, currency pathUSD
       chainId: tempoTestnet.chainId, // 42431 — REQUIRED: session intent else defaults to mainnet 4217
       store: Store.memory(),
@@ -68,6 +80,23 @@ app.get('/tee/public-key', async (c) => c.json(await fetchTeePublicKeyRaw()))
 
 // ── Per-unit attested private inference (session + SSE metering) ──────────────
 app.post('/v1/chat/completions/stream', async (c) => {
+  // Read the body ONCE. The CONTENT (open) request carries the encrypted-prompt JSON;
+  // mid-stream MANAGEMENT POSTs (voucher top-up / close) are header-only (Authorization
+  // only, empty body). @hono/node-server hands even an empty POST a NON-null body stream,
+  // so mppx's captureRequest reports `hasBody: true` and MISCLASSIFIES a header-only
+  // voucher POST as billable content — it then double-charges the channel (eating the
+  // very headroom the voucher just added → the stream's commit throws "reserved voucher
+  // coverage is no longer available") and 500s below on the empty JSON body. Normalize:
+  // hand mppx a request whose body is null when there is no real content, so voucher/close
+  // correctly classify as management (clean 204 ack, no spurious charge). This is what
+  // unblocks multi-unit streaming (chunkCount > 1). See ADR-0003.
+  const bodyText = await c.req.raw.text()
+  const reqForMppx = new Request(c.req.raw.url, {
+    method: 'POST',
+    headers: c.req.raw.headers,
+    ...(bodyText.length ? { body: bodyText } : {}),
+  })
+
   // Bind payment to the STABLE attested enclave identity (teePublicKeySha256). The
   // quote bytes change per call, but this key is constant across the challenge→pay
   // →retry cycle. The agent verifies the same key pre-pay (ADR-0002).
@@ -80,22 +109,22 @@ app.post('/v1/chat/completions/stream', async (c) => {
     description: 'Private inference in a real Phala Intel TDX enclave',
     meta: { enclaveKey: enclaveId },
     suggestedDeposit: config.maxDeposit, // fund once with headroom; fewer mid-stream top-ups
-  })(c.req.raw.clone())
+  })(reqForMppx)
 
   if (result.status === 402) return result.challenge
 
-  // Management requests (top-up / voucher) are acked with withReceipt() and NO args
-  // (canonical — mppx/middlewares/hono.ts). It throws MissingReceiptResponseError for
-  // a resource request, which we catch to proceed with inference.
+  // Management requests (top-up / voucher / close) are acked with withReceipt() and NO
+  // args (canonical — mppx/middlewares/hono.ts). It throws MissingReceiptResponseError for
+  // a content request, which we catch to proceed with inference.
   try {
     return await result.withReceipt()
   } catch (e) {
     if (!Mppx.isMissingReceiptResponseError(e)) throw e
   }
 
-  // Resource request: run the attested private inference + meter the stream.
+  // Content request: run the attested private inference + meter the stream.
   try {
-    const { encryptedPrompt, model } = (await c.req.raw.json()) as { encryptedPrompt: string; model?: string }
+    const { encryptedPrompt, model } = JSON.parse(bodyText) as { encryptedPrompt: string; model?: string }
     console.log(`[stream] paid → teeProcess (prompt ${encryptedPrompt?.length ?? 0} bytes)`)
     const tee = await teeProcess(encryptedPrompt, model ?? config.upstreamModel)
     console.log(`[stream] tee ok → encryptedResponse ${tee.encryptedResponse?.length ?? 0} bytes`)

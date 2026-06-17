@@ -17,11 +17,10 @@ export const config = {
   pricePerCall: process.env.PRICE_PER_CALL ?? '0.01', // one-time charge (non-stream)
   pricePerUnit: process.env.PRICE_PER_UNIT ?? '0.0002', // per response-chunk (session/SSE)
   // How many SSE chunks the blind relay slices the enclave's single ciphertext
-  // blob into — each chunk = one MPP voucher tick. See ADR-0001/0003.
-  // Default 1: the whole response is one charged unit, which completes the loop
-  // end-to-end today. Multi-unit (>1) needs the mid-stream voucher-top-up POST
-  // handling fixed first (see ADR-0003 "open").
-  chunkCount: Number(process.env.CHUNK_COUNT ?? 1),
+  // blob into — each chunk = one MPP voucher tick, so the payer's balance visibly
+  // ticks per chunk. Multi-unit metering is fixed + verified end-to-end (ADR-0003);
+  // default 4 so the demo shows several ticks. Override with CHUNK_COUNT.
+  chunkCount: Number(process.env.CHUNK_COUNT ?? 4),
 
   // Real Phala Intel TDX enclave (the private upstream). When unset → stub mode.
   teeEndpoint: (process.env.TEE_ENDPOINT ?? '').replace(/\/$/, ''),
@@ -29,6 +28,12 @@ export const config = {
   // Optional strict-pin: reject the quote unless mrtd/rtmr equals this value.
   // Unset → soft-pin (compare-to-advertised + display only). See DESIGN §1.
   expectedMeasurement: process.env.EXPECTED_MEASUREMENT ?? '',
+
+  // Optional PAYEE key: when set, the server can cooperatively CLOSE (settle) the
+  // channel on-chain as the recipient — the settlement tx sender must equal the
+  // channel payee. Its address MUST equal TEMPO_RECIPIENT. Unset → close stays
+  // best-effort (deposit reclaims on channel timeout). See ADR-0003.
+  recipientPrivateKey: (process.env.TEMPO_RECIPIENT_PRIVATE_KEY ?? '') as `0x${string}` | '',
 
   // Client/agent side.
   agentPrivateKey: (process.env.AGENT_PRIVATE_KEY ?? '') as `0x${string}` | '',
