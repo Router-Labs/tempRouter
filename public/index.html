@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>tempRouter — private AI inference, paid on Tempo</title>
-<meta name="description" content="MPP-paid, attestation-gated private AI inference on Tempo. Agents pay per response-chunk in pathUSD — only after proving the enclave can't read the prompt." />
+<title>tempRouter — the confidential-inference rail for agents on Tempo</title>
+<meta name="description" content="Agent infrastructure for confidential AI inference on Tempo. Verify a real Intel TDX enclave, then pay per response-chunk in pathUSD — via SDK, CLI, or MCP. Pay only after you prove the host can't read your prompt." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -33,6 +33,8 @@
   a:hover{text-decoration:underline;text-underline-offset:3px}
   .label{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
   .period{color:var(--cream)}
+  code{font-family:var(--mono);font-size:.9em;color:var(--cream);background:rgba(245,230,211,.06);padding:1px 5px;border-radius:4px}
+  pre code{background:none;padding:0;color:inherit}
 
   header{border-bottom:1px solid var(--border-faint);position:sticky;top:0;background:rgba(10,9,8,.78);backdrop-filter:blur(10px);z-index:10}
   header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
@@ -43,33 +45,37 @@
 
   .hero{padding:104px 0 72px;border-bottom:1px solid var(--border-faint)}
   .hero h1{font-family:var(--serif);font-weight:400;font-size:clamp(44px,8vw,92px);line-height:.98;color:var(--text-strong);letter-spacing:-.01em}
-  .hero .sub{margin-top:26px;font-size:clamp(18px,2.4vw,23px);color:var(--muted);max-width:680px}
+  .hero .sub{margin-top:26px;font-size:clamp(18px,2.4vw,23px);color:var(--muted);max-width:700px}
   .hero .sub b{color:var(--text-strong);font-weight:500}
   .pills{margin-top:34px;display:flex;flex-wrap:wrap;gap:10px}
   .pill{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:7px 14px}
   .pill .dot{color:var(--cream)}
+  .pill.accent{border-color:rgba(167,139,250,.35);color:var(--purple-soft)}
+  .pill.accent .dot{color:var(--purple)}
 
   section{padding:64px 0;border-bottom:1px solid var(--border-faint)}
   h2{font-family:var(--serif);font-weight:400;font-size:clamp(28px,4vw,40px);color:var(--text-strong);margin-bottom:8px}
-  .lede{color:var(--muted);max-width:680px;margin-bottom:30px}
+  .lede{color:var(--muted);max-width:700px;margin-bottom:30px}
 
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border-faint);border:1px solid var(--border-faint)}
   .card{background:var(--bg);padding:26px}
   .card h3{font-size:16px;color:var(--text-strong);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:9px}
-  .card h3 .ico{width:7px;height:7px;border-radius:2px;background:var(--cream);display:inline-block}
+  .card h3 .ico{width:7px;height:7px;border-radius:2px;background:var(--cream);display:inline-block;flex:none}
   .card.p h3 .ico{background:var(--purple)}
   .card p{color:var(--muted);font-size:14.5px}
+  .card .tag{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.04em}
 
   .endpoint{border:1px solid var(--border);border-radius:10px;padding:0;margin-bottom:16px;overflow:hidden;background:var(--bg-raised)}
   .endpoint .top{display:flex;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid var(--border-faint);flex-wrap:wrap}
   .verb{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;padding:3px 9px;border-radius:5px;border:1px solid var(--border-strong);color:var(--cream)}
   .verb.get{color:var(--purple-soft);border-color:rgba(167,139,250,.35)}
+  .verb.tool{color:var(--purple-soft);border-color:rgba(167,139,250,.35)}
   .path{font-family:var(--mono);font-size:14px;color:var(--text-strong)}
   .endpoint .top .meta{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--faint)}
   .endpoint .desc{padding:13px 18px;color:var(--muted);font-size:14px}
 
-  pre{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.7;color:var(--text)}
-  pre .c{color:var(--subtle)} pre .k{color:var(--purple-soft)} pre .s{color:var(--cream)}
+  pre{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.7;color:var(--text);margin-bottom:22px}
+  pre .c{color:var(--subtle)} pre .k{color:var(--purple-soft)} pre .s{color:var(--cream)} pre .g{color:#7fae8a}
 
   ol.flow{counter-reset:s;list-style:none;display:grid;gap:14px}
   ol.flow li{position:relative;padding-left:42px;color:var(--muted);font-size:15px}
@@ -83,7 +89,7 @@
   footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:18px;align-items:flex-end}
   footer .links a{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-right:20px}
   footer .fine{font-family:var(--mono);font-size:11px;color:var(--subtle);letter-spacing:.04em}
-  @media(max-width:680px){.grid{grid-template-columns:1fr}nav a{margin-left:14px}}
+  @media(max-width:680px){.grid{grid-template-columns:1fr}nav a{margin-left:14px}nav .hide{display:none}}
 </style>
 </head>
 <body>
@@ -91,35 +97,37 @@
   <div class="brand">temp<b>Router</b><span class="period">.</span></div>
   <nav>
     <a href="#how">How</a>
-    <a href="#endpoints">Endpoints</a>
-    <a href="#discovery">Discovery</a>
+    <a href="#integrate">Integrate</a>
+    <a href="#endpoints" class="hide">Endpoints</a>
+    <a href="#discovery" class="hide">Discovery</a>
     <a href="https://github.com/Router-Labs/tempRouter">GitHub</a>
   </nav>
 </div></header>
 
 <div class="hero"><div class="wrap">
-  <span class="label">MPP · Tempo · Phala Intel TDX</span>
+  <span class="label">Confidential-inference rail · Tempo · MPP · Phala Intel TDX</span>
   <h1>Pay an LLM only after you can<br/>prove it never saw your prompt<span class="period">.</span></h1>
-  <p class="sub">tempRouter is an <b>MPP-payable</b> endpoint for confidential inference. An agent pays per response-chunk in <b>pathUSD</b> on Tempo — but only after it cryptographically verifies, with Intel DCAP, that the prompt runs inside a <b>real Phala Intel TDX enclave</b> that can't read it. The relay is blind: it forwards ciphertext and holds no key.</p>
+  <p class="sub">tempRouter is <b>infrastructure</b> for confidential agent inference on Tempo. Your agent verifies, with Intel DCAP, that the prompt runs inside a <b>real Phala Intel TDX enclave</b> that can't read it — then pays per response-chunk in <b>pathUSD</b>. The relay is blind: ciphertext only, no key. Ships as an <b>SDK, CLI, and MCP server</b>, so you drop it into any agent.</p>
   <div class="pills">
-    <span class="pill"><span class="dot">●</span> no API key · no signup</span>
+    <span class="pill accent"><span class="dot">●</span> SDK · CLI · MCP</span>
     <span class="pill"><span class="dot">●</span> verify-before-pay</span>
     <span class="pill"><span class="dot">●</span> per-chunk MPP metering</span>
+    <span class="pill"><span class="dot">●</span> no API key · no signup</span>
     <span class="pill"><span class="dot">●</span> blind relay</span>
   </div>
 </div></div>
 
-<section id="skills"><div class="wrap">
-  <span class="label">Capabilities</span>
-  <h2>What it does<span class="period">.</span></h2>
-  <p class="lede">Payment was the easy half — MPP already does per-token stablecoin billing. tempRouter ships the half MPP left open: provable confidentiality, fused into the payment handshake.</p>
+<section id="what"><div class="wrap">
+  <span class="label">Why</span>
+  <h2>Payment was the easy half<span class="period">.</span></h2>
+  <p class="lede">MPP already does per-token stablecoin billing. tempRouter ships the half MPP left open — provable confidentiality — and fuses it into the payment handshake, so money moves only against a named, attested enclave.</p>
   <div class="grid">
     <div class="card"><h3><span class="ico"></span>Attestation-gated payment</h3><p>The 402 challenge HMAC-binds <code>sha256(tdxQuote)</code>; the agent verifies the quote before signing the first voucher. Money moves only against a named, attested enclave.</p></div>
-    <div class="card"><h3><span class="ico"></span>Two-phase Intel DCAP verify</h3><p>Pre-pay: genuine TDX hardware + UpToDate TCB + code measurement. Post-pay receipt: ed25519 over the exact ciphertext + key binding. Fully auditable on the wire.</p></div>
+    <div class="card"><h3><span class="ico"></span>Two-phase Intel DCAP verify</h3><p>Pre-pay: genuine TDX hardware + UpToDate TCB + code measurement. Post-pay receipt: ed25519 over the exact ciphertext + key binding. Auditable on the wire.</p></div>
     <div class="card p"><h3><span class="ico"></span>Blind relay</h3><p>Prompts are E2E-encrypted (Arcium RescueCipher + X25519) to a key that exists only inside the enclave. tempRouter never holds a key and never sees plaintext.</p></div>
     <div class="card p"><h3><span class="ico"></span>Client-side secret/PII policy</h3><p>The agent detects API keys, private keys, JWTs and PII locally and forces the private lane — the right call because a blind relay can't classify what it can't read.</p></div>
-    <div class="card"><h3><span class="ico"></span>Per-chunk MPP metering</h3><p>TIP-1034 session vouchers over SSE: one response-chunk = one tick, ~2 on-chain txs for a whole stream, paid in pathUSD on Tempo Moderato.</p></div>
-    <div class="card"><h3><span class="ico"></span>Agent-native + discoverable</h3><p>Standard OpenAI-shaped request, MPP 402 flow, and an OpenAPI discovery doc so any agent or registry (mpp.dev/services, MPPScan) can find and pay the endpoint.</p></div>
+    <div class="card"><h3><span class="ico"></span>Per-chunk MPP metering</h3><p>TIP-1034 session vouchers over SSE: one response-chunk = one tick, the balance ticks as it streams, ~2 on-chain txs for the whole session, paid in pathUSD.</p></div>
+    <div class="card"><h3><span class="ico"></span>Discoverable + payable</h3><p>OpenAI-shaped request, MPP 402 flow, and an OpenAPI discovery doc so any agent or registry (mpp.dev/services, MPPScan) can find and pay the endpoint.</p></div>
   </div>
 </div></section>
 
@@ -135,9 +143,37 @@
   </ol>
 </div></section>
 
+<section id="integrate"><div class="wrap">
+  <span class="label">Integrate</span>
+  <h2>Drop it into your agent<span class="period">.</span></h2>
+  <p class="lede">tempRouter is infrastructure, not a destination. The same verify-before-pay lane ships at four altitudes — an SDK, a CLI, an MCP server, and an agent skill. Each does the whole dance: verify the enclave, encrypt, pay per chunk in pathUSD, decrypt. Pick the one that fits.</p>
+
+  <pre><span class="c">// @temprouter/sdk — the whole lane in one call</span>
+<span class="k">import</span> { TempRouter, detectSensitive } <span class="k">from</span> <span class="s">'@temprouter/sdk'</span>
+
+<span class="k">const</span> client = <span class="k">new</span> TempRouter({ serverUrl, account }) <span class="c">// account = funded Tempo wallet</span>
+
+<span class="k">if</span> (detectSensitive(prompt).sensitive) {
+  <span class="k">const</span> { answer, paid } = <span class="k">await</span> client.infer(prompt) <span class="c">// verify → encrypt → pay → decrypt</span>
+}</pre>
+
+  <div class="grid">
+    <div class="card"><h3><span class="ico"></span>SDK</h3><p class="tag">@temprouter/sdk</p><p>One <code>client.infer(prompt)</code> call. Bundles @solrouter/sdk encryption + mppx Tempo payment + Intel DCAP verify. A failed gate throws <code>AttestationError</code> and pays zero.</p></div>
+    <div class="card"><h3><span class="ico"></span>CLI</h3><p class="tag">temprouter</p><p><code>temprouter infer "…"</code> — verify, pay per chunk, decrypt at the terminal. Plus <code>verify</code> (gate only, free) and <code>detect</code> (policy check).</p></div>
+    <div class="card p"><h3><span class="ico"></span>MCP server</h3><p class="tag">stdio · local</p><p>Tools <code>private_inference</code>, <code>detect_sensitive</code>, <code>verify_enclave</code>. Runs in your agent's process, so encryption + wallet never leave your trust domain.</p></div>
+    <div class="card p"><h3><span class="ico"></span>Agent skill</h3><p class="tag">entrypoint</p><p>Drop the <code>temprouter</code> skill and your agent auto-routes any secret/PII prompt to the private lane instead of a public model host.</p></div>
+  </div>
+
+  <pre><span class="c"># or straight from a shell / agent terminal</span>
+$ temprouter infer <span class="s">"rotate this leaked sk-proj-… key — exact steps"</span>
+<span class="g">  🔒 sensitive payload detected (openai-key) → forcing attested private lane</span>
+<span class="g">  ✅ TDX verified  ·  💸 4 chunks · 0.0008 pathUSD  ·  🔓 decrypted locally</span></pre>
+</div></section>
+
 <section id="endpoints"><div class="wrap">
-  <span class="label">Payable endpoint</span>
-  <h2>The endpoint<span class="period">.</span></h2>
+  <span class="label">Under the hood</span>
+  <h2>The payable endpoint<span class="period">.</span></h2>
+  <p class="lede">All four surfaces speak the same wire protocol. Any MPP-speaking agent can hit it directly — the 402 handshake handles pay → retry.</p>
   <div class="endpoint">
     <div class="top"><span class="verb">POST</span><span class="path">/v1/chat/completions/stream</span><span class="meta">0.0002 pathUSD / response-chunk</span></div>
     <div class="desc">Attested private inference, metered per response-chunk over an MPP session (SSE). MPP <code>tempo</code> intent <code>session</code>, currency pathUSD, network Tempo Moderato (chain&nbsp;42431).</div>
@@ -147,7 +183,7 @@
     <div class="desc">The live enclave attestation (<code>teeType: INTEL-TDX-PHALA</code> + TDX quote). Verify with Intel DCAP before signing a voucher.</div>
   </div>
   <pre><span class="c"># any MPP-speaking agent — the CLI handles the 402 → pay → retry</span>
-tempo request <span class="s">https://temprouter.example/v1/chat/completions/stream</span> \
+tempo request <span class="s">https://temprouter.onrender.com/v1/chat/completions/stream</span> \
   -d <span class="s">'{"encryptedPrompt":"…","model":"nosana:gpt-oss:20b"}'</span></pre>
 </div></section>
 
@@ -157,7 +193,7 @@ tempo request <span class="s">https://temprouter.example/v1/chat/completions/str
   <p class="lede">tempRouter publishes a machine-readable discovery surface so agents and registries can find the payable endpoint, its price, and its terms — no human in the loop.</p>
   <div class="endpoint"><div class="top"><span class="verb get">GET</span><span class="path">/openapi.json</span><span class="meta">x-service-info · x-payment-info</span></div><div class="desc">OpenAPI 3.1 annotated with payment offers (amount, currency, intent, method) — listable on mpp.dev/services & MPPScan.</div></div>
   <div class="endpoint"><div class="top"><span class="verb get">GET</span><span class="path">/llms.txt</span><span class="meta">agent context</span></div><div class="desc">Plain-language context for agents: what the service is, when to use it, and the exact pay flow.</div></div>
-  <p class="note"><b>Honest scope:</b> the private lane runs an OSS model (gpt-oss:20b) inside the enclave — use it for confidential payloads, not as a frontier-model replacement. Verification covers DCAP cert-chain + key binding + enclave signature; code-measurement pinning is opt-in.</p>
+  <p class="note"><b>Honest scope:</b> the private lane runs an OSS model (gpt-oss:20b) inside the enclave — use it for confidential payloads, not as a frontier-model replacement. Verification covers DCAP cert-chain + key binding + enclave signature; code-measurement pinning is opt-in. Tempo Moderato testnet.</p>
 </div></section>
 
 <footer><div class="wrap">

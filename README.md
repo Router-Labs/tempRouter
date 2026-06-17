@@ -43,6 +43,34 @@ agent  ── reassemble chunks → decrypt() locally.  Plaintext seen only by a
 - **Payment** is native Tempo/pathUSD via [`mppx`](https://www.npmjs.com/package/mppx)
   session vouchers (~2 on-chain txs per stream). See [docs/adr/0002](docs/adr/0002-attestation-bound-mpp-settlement.md).
 
+## Integrate
+
+tempRouter is infrastructure, not a destination — the same verify-before-pay lane ships at
+four altitudes. Each runs the whole dance (verify the enclave → encrypt → pay per chunk in
+pathUSD → decrypt):
+
+| surface | use it |
+|---|---|
+| **SDK** — [`@temprouter/sdk`](sdk/) | `new TempRouter({ serverUrl, account }).infer(prompt)` → `{ answer, units, paid }`. A failed gate throws `AttestationError` and pays zero. |
+| **CLI** — [`cli/`](cli/) | `npm run cli -- infer "<prompt>"` (also `verify`, `detect`). |
+| **MCP** — [`mcp/`](mcp/) | local stdio server: tools `private_inference`, `detect_sensitive`, `verify_enclave`. Encryption + wallet stay in your agent's process. |
+| **Skill** — [`skill/temprouter`](skill/temprouter/SKILL.md) | entrypoint that auto-routes secret/PII prompts to the private lane. |
+
+```ts
+import { TempRouter, detectSensitive } from '@temprouter/sdk'
+
+const client = new TempRouter({ serverUrl: 'https://temprouter.onrender.com', account: '0x…' })
+if (detectSensitive(prompt).sensitive) {
+  const { answer } = await client.infer(prompt) // verify → encrypt → pay → decrypt
+}
+```
+
+Wire the MCP server into a client (e.g. Claude) with a funded `AGENT_PRIVATE_KEY` in env:
+
+```json
+{ "command": "npx", "args": ["tsx", "/abs/path/tempRouter/mcp/server.ts"] }
+```
+
 ## Run it
 
 ```bash
@@ -91,9 +119,10 @@ decrypt to plaintext answer.`
 - ✅ Attestation-gated payment, real MPP session on Tempo Moderato, real pathUSD spent.
 - ✅ Funded testnet wallet (`mppx account temprouter`).
 
-**Open (payment-channel lifecycle polish — see [ADR-0003](docs/adr/0003-per-unit-sse-metering.md)):**
-- ⏳ Multi-unit streaming (`CHUNK_COUNT > 1`) breaks on the mid-stream voucher top-up POST; default is `chunkCount=1` (whole response = one charged unit), which completes cleanly.
-- ⏳ Cooperative `manager.close()` returns 402 (made non-fatal; deposit reclaims on timeout).
+**✅ ADR-0003 closed (2026-06-17) — see [ADR-0003](docs/adr/0003-per-unit-sse-metering.md):**
+- ✅ Multi-unit streaming (`CHUNK_COUNT > 1`) — the balance ticks per chunk; default `chunkCount=4`. (Fixed a request-classification bug where header-only voucher POSTs were misread as billable content.)
+- ✅ Cooperative `manager.close()` settles on-chain as the payee (opt-in via `TEMPO_RECIPIENT_PRIVATE_KEY`).
+- ✅ SDK · CLI · MCP · agent skill shipped (see **Integrate** above), all verified end-to-end on testnet.
 
 See [`DESIGN.md`](DESIGN.md) for the locked design + 4-day plan, [`CONTEXT.md`](CONTEXT.md)
 for the domain glossary, and `docs/adr/` for the load-bearing decisions.
