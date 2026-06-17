@@ -100,9 +100,7 @@ async function cmdInfer(prompt: string, flags: Record<string, unknown>) {
 async function cmdVerify(flags: Record<string, unknown>) {
   const client = new TempRouter({
     serverUrl: (flags.server as string) || config.serverUrl,
-    account: config.agentPrivateKey || ('0x' + '0'.repeat(64)) as `0x${string}`,
-    maxDeposit: config.maxDeposit,
-    pricePerUnit: config.pricePerUnit,
+    account: config.agentPrivateKey || undefined, // verify() never pays — no wallet needed
     expectedMeasurement: config.expectedMeasurement || undefined,
   })
   const report = await client.verify()

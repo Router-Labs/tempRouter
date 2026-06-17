@@ -24,12 +24,12 @@ import { config } from '../src/config.js'
 const ok = (t: string) => ({ content: [{ type: 'text' as const, text: t }] })
 const err = (t: string) => ({ content: [{ type: 'text' as const, text: t }], isError: true })
 
-/** Build a client bound to the local payer wallet, or null if no wallet is configured. */
+/** Build a client bound to the local payer wallet (if any). `verify()` needs no wallet;
+ *  `infer()` throws a clear error when unfunded — private_inference guards for that below. */
 function makeClient(serverUrl?: string) {
-  if (!config.agentPrivateKey) return null
   return new TempRouter({
     serverUrl: serverUrl ?? config.serverUrl,
-    account: config.agentPrivateKey,
+    account: config.agentPrivateKey || undefined,
     maxDeposit: config.maxDeposit,
     pricePerUnit: config.pricePerUnit,
     expectedMeasurement: config.expectedMeasurement || undefined,
@@ -67,9 +67,7 @@ server.registerTool(
     inputSchema: { server: z.string().optional().describe('Override the tempRouter base URL.') },
   },
   async ({ server }) => {
-    const client = makeClient(server)
-    if (!client) return err(NO_WALLET)
-    const report = await client.verify()
+    const report = await makeClient(server).verify() // free — no wallet required
     return ok(formatReport(report))
   },
 )
@@ -87,10 +85,9 @@ server.registerTool(
     },
   },
   async ({ prompt, model, server }) => {
-    const client = makeClient(server)
-    if (!client) return err(NO_WALLET)
+    if (!config.agentPrivateKey) return err(NO_WALLET)
     try {
-      const res = await client.infer(prompt, { model })
+      const res = await makeClient(server).infer(prompt, { model })
       const footer = `\n\n— verified TDX enclave · ${res.units} chunk(s) · ${res.paid} pathUSD${res.attestation.postPay?.ok ? ' · receipt ✓' : ''}`
       return ok(res.answer + footer)
     } catch (e) {

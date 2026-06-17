@@ -33,8 +33,9 @@ const DEFAULT_MODEL = 'nosana:gpt-oss:20b'
 export type TempRouterOptions = {
   /** tempRouter base URL, e.g. https://temprouter.onrender.com */
   serverUrl: string
-  /** Payer wallet: a viem `Account`, or a `0x` private key (Tempo testnet). */
-  account: Account | `0x${string}`
+  /** Payer wallet: a viem `Account`, or a `0x` private key (Tempo testnet). Only
+   *  required to pay — `verify()` works without it. */
+  account?: Account | `0x${string}`
   /** pathUSD deposit headroom (human units). Default '1'. */
   maxDeposit?: string
   /** Per-response-chunk price, for the running tally. Default '0.0002'. */
@@ -88,20 +89,31 @@ export class AttestationError extends Error {
  */
 export class TempRouter {
   #serverUrl: string
-  #account: Account
+  #accountInput?: Account | `0x${string}`
+  #account?: Account
   #maxDeposit: string
   #pricePerUnit: string
   #expectedMeasurement?: string
 
   constructor(opts: TempRouterOptions) {
     this.#serverUrl = opts.serverUrl.replace(/\/$/, '')
-    this.#account = typeof opts.account === 'string' ? privateKeyToAccount(opts.account) : opts.account
+    this.#accountInput = opts.account
     this.#maxDeposit = opts.maxDeposit ?? '1'
     this.#pricePerUnit = opts.pricePerUnit ?? '0.0002'
     this.#expectedMeasurement = opts.expectedMeasurement
   }
 
-  /** PRE-PAY gate only: fetch + Intel-DCAP-verify the enclave quote. Never pays. */
+  /** Resolve the payer account lazily — only `infer()` needs it, so `verify()` works
+   *  with no wallet configured. Throws a clear error when payment is attempted unfunded. */
+  #resolveAccount(): Account {
+    if (this.#account) return this.#account
+    if (!this.#accountInput)
+      throw new Error('tempRouter: no payer account configured — pass `account` (a viem Account or 0x private key) to pay for inference.')
+    this.#account = typeof this.#accountInput === 'string' ? privateKeyToAccount(this.#accountInput) : this.#accountInput
+    return this.#account
+  }
+
+  /** PRE-PAY gate only: fetch + Intel-DCAP-verify the enclave quote. Never pays (no wallet needed). */
   async verify(): Promise<VerifyReport> {
     const att = await (await fetch(`${this.#serverUrl}/tee/attestation`)).json()
     return verifyQuote(att, { expectedMeasurement: this.#expectedMeasurement })
@@ -125,8 +137,9 @@ export class TempRouter {
     const encryptedPrompt = packageForTEE(enc)
 
     // 3. Pay per response-chunk over an MPP session (Tempo Moderato testnet).
-    const client = createWalletClient({ account: this.#account, chain: tempoModerato, transport: http() })
-    const manager = Session.Client.sessionManager({ account: this.#account, client, decimals: 6, maxDeposit: this.#maxDeposit })
+    const account = this.#resolveAccount()
+    const client = createWalletClient({ account, chain: tempoModerato, transport: http() })
+    const manager = Session.Client.sessionManager({ account, client, decimals: 6, maxDeposit: this.#maxDeposit })
 
     const stream = await manager.sse(`${this.#serverUrl}/v1/chat/completions/stream`, {
       method: 'POST',
