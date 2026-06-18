@@ -6,6 +6,32 @@
 <meta name="color-scheme" content="dark" />
 <title>tempRouter — payable, end-to-end-encrypted LLM inference on MPP</title>
 <meta name="description" content="A payable inference endpoint on MPP (Tempo). Pay per response-chunk in pathUSD after your agent verifies a real Intel TDX enclave with Intel DCAP — end-to-end encrypted, the relay is blind. Drop-in via SDK, CLI, MCP, or agent skill." />
+<link rel="canonical" href="https://temprouter.onrender.com/" />
+<!-- Agent / registry discovery surfaces -->
+<link rel="service-desc" type="application/json" href="/openapi.json" title="MPP / OpenAPI discovery" />
+<link rel="alternate" type="text/markdown" href="/llms.txt" title="llms.txt — agent context" />
+<link rel="alternate" type="text/markdown" href="/SKILL.md" title="Agent skill entrypoint" />
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="tempRouter" />
+<meta property="og:title" content="tempRouter — payable, E2E-encrypted LLM inference on MPP" />
+<meta property="og:description" content="Pay an LLM in pathUSD only after your agent proves (Intel DCAP) it runs inside a real Intel TDX enclave that can't read the prompt." />
+<meta property="og:url" content="https://temprouter.onrender.com/" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="tempRouter — payable, E2E-encrypted LLM inference on MPP" />
+<meta name="twitter:description" content="Verify a real Intel TDX enclave, then pay per response-chunk in pathUSD. End-to-end encrypted; the relay is blind." />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebAPI",
+  "name": "tempRouter",
+  "description": "Payable, end-to-end-encrypted LLM inference on MPP (Tempo). Verify a real Intel TDX enclave with Intel DCAP, then pay per response-chunk in pathUSD.",
+  "url": "https://temprouter.onrender.com/",
+  "documentation": "https://temprouter.onrender.com/llms.txt",
+  "provider": { "@type": "Organization", "name": "Router Labs", "url": "https://github.com/Router-Labs" },
+  "offers": { "@type": "Offer", "price": "0.0002", "priceCurrency": "pathUSD", "description": "per response-chunk, MPP session on Tempo" }
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />

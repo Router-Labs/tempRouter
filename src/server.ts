@@ -178,6 +178,18 @@ app.get('/llms.txt', (c) => {
   }
 })
 
+// Crawler/agent discoverability: robots + /.well-known aliases for the discovery surfaces.
+app.get('/robots.txt', (c) => {
+  try {
+    return c.text(readFileSync(new URL('../public/robots.txt', import.meta.url), 'utf8'))
+  } catch {
+    return c.text('User-agent: *\nAllow: /\n')
+  }
+})
+app.get('/.well-known/llms.txt', (c) => c.redirect('/llms.txt'))
+app.get('/.well-known/openapi.json', (c) => c.redirect('/openapi.json'))
+app.get('/.well-known/skill.md', (c) => c.redirect('/SKILL.md'))
+
 // ── Agent skill entrypoint (installable: `npx skills add Router-Labs/tempRouter`) ──
 const serveSkill = (c: any) => {
   try {
