@@ -15,7 +15,11 @@ services:
       # HMAC secret for binding/verifying MPP challenges. NOT a chain key.
       - key: MPP_SECRET_KEY
         generateValue: true
-      # Earnings address (where pathUSD payments settle).
+      # Network: "testnet" (Moderato, chain 42431, pathUSD) or "mainnet" (Allegro, chain 4217, USDC.e)
+      - key: NETWORK
+        value: testnet
+      # Earnings address (where payments settle). Set to your wallet address.
+      # Testnet: pathUSD. Mainnet: USDC.e.
       - key: TEMPO_RECIPIENT
         value: "0xa726a1CD723409074DF9108A2187cfA19899aCF8"
       - key: PRICE_PER_UNIT
