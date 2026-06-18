@@ -18,7 +18,7 @@ import { encrypt, decrypt, packageForTEE } from '@solrouter/sdk'
 import { Session } from 'mppx/tempo'
 import { createWalletClient, http, type Account } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { tempoModerato } from 'viem/chains'
+import { tempoModerato, tempoMainnet } from 'viem/chains'
 import {
   verifyQuote,
   verifyAttestation,
@@ -136,9 +136,10 @@ export class TempRouter {
     const enc = await encrypt(prompt, this.#serverUrl)
     const encryptedPrompt = packageForTEE(enc)
 
-    // 3. Pay per response-chunk over an MPP session (Tempo Moderato testnet).
+    // 3. Pay per response-chunk over an MPP session on Tempo.
     const account = this.#resolveAccount()
-    const client = createWalletClient({ account, chain: tempoModerato, transport: http() })
+    const tempoChain = process.env.NETWORK === 'mainnet' ? tempoMainnet : tempoModerato
+    const client = createWalletClient({ account, chain: tempoChain, transport: http() })
     const manager = Session.Client.sessionManager({ account, client, decimals: 6, maxDeposit: this.#maxDeposit })
 
     const stream = await manager.sse(`${this.#serverUrl}/v1/chat/completions/stream`, {
