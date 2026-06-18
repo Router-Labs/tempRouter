@@ -188,8 +188,8 @@ const serveSkill = (c: any) => {
     return c.text('# tempRouter\nPayable, E2E-encrypted LLM inference on MPP. See /llms.txt + /openapi.json.\n')
   }
 }
-app.get('/SKILL.md', serveSkill)
-app.get('/skill', serveSkill)
+// Canonical path + the common variants a human or agent might try.
+for (const p of ['/SKILL.md', '/skill.md', '/skill', '/skills.md', '/skills']) app.get(p, serveSkill)
 
 resolveMode().then((mode) => {
   MODE = mode
