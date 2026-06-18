@@ -38,12 +38,13 @@ tempRouter's server role: it holds no decryption key and never sees plaintext.
 The only cleartext it touches is payment metadata (channel id, vouchers,
 `externalId`). It proxies ciphertext to the enclave and meters the response.
 
-### Attestation commitment (`externalId` binding)
-The novel MPP-rail contribution: the server puts `sha256(tdxQuote)` of the live
-enclave quote into the MPP 402 challenge `externalId`, which mppx HMAC-signs with
-the server `secretKey`. The server then refuses to settle any voucher bound to a
-different quote digest → payment is cryptographically tied to a *named attested
-enclave*, not just a courtesy client check.
+### Enclave-key settlement label (`meta.enclaveKey`)
+The server attaches the live enclave's stable `teePublicKeySha256` to the MPP 402
+challenge `meta`, which mppx HMAC-signs into the challenge `opaque`. This is a
+**label** naming the enclave a session is for — **not** an enforced gate: neither
+side refuses a voucher on a mismatch (mppx 0.7.0 has no pre-settlement hook). The
+guarantee that actually holds is the [[Private inference]] one — the prompt is
+encrypted to a key the agent DCAP-verifies before paying — not a voucher binding.
 
 ### Unit (billing)  — `unitType: 'response-chunk'`
 The MPP billable unit. Because the relay is blind it cannot count plaintext LLM

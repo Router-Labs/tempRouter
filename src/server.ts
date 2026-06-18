@@ -1,7 +1,7 @@
 // tempRouter — MPP-paid, attestation-gated private inference on Tempo.
 // Agent-only. Blind relay (ADR-0001) in front of the real Phala Intel TDX enclave.
-// Payment is native Tempo/pathUSD via mppx; the session challenge binds the stable
-// enclave key into `meta` so the voucher settles against a named attested enclave (ADR-0002).
+// Payment is native Tempo/pathUSD via mppx; the session challenge attaches the stable
+// enclave key to `meta` as a settlement LABEL (not an enforced gate — see ADR-0002 §4).
 //
 // Streaming follows mpp.dev/guides/streamed-payments + mppx's own hono middleware
 // (src/middlewares/hono.ts): gate 402 → ack management requests with `withReceipt()`
@@ -69,6 +69,8 @@ app.get('/', (c) => {
       'POST /v1/chat/completions/stream': `session, ${config.pricePerUnit} pathUSD/response-chunk (SSE)`,
       'GET /tee/attestation': 'enclave attestation (verify before you pay)',
       'GET /openapi.json': 'MPP service discovery',
+      'GET /llms.txt': 'agent-readable context',
+      'GET /SKILL.md': 'agent skill entrypoint',
     },
     recipient: config.recipient,
   })
@@ -175,6 +177,19 @@ app.get('/llms.txt', (c) => {
     return c.text('# tempRouter\nAttestation-gated private AI inference paid per response-chunk in pathUSD on Tempo.\n')
   }
 })
+
+// ── Agent skill entrypoint (installable: `npx skills add Router-Labs/tempRouter`) ──
+const serveSkill = (c: any) => {
+  try {
+    return c.text(readFileSync(new URL('../skills/temprouter/SKILL.md', import.meta.url), 'utf8'), 200, {
+      'content-type': 'text/markdown; charset=utf-8',
+    })
+  } catch {
+    return c.text('# tempRouter\nPayable, E2E-encrypted LLM inference on MPP. See /llms.txt + /openapi.json.\n')
+  }
+}
+app.get('/SKILL.md', serveSkill)
+app.get('/skill', serveSkill)
 
 resolveMode().then((mode) => {
   MODE = mode

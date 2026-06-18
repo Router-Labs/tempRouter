@@ -120,13 +120,13 @@
 <section id="what"><div class="wrap">
   <span class="label">Why</span>
   <h2>Payment was the easy half<span class="period">.</span></h2>
-  <p class="lede">MPP already does per-token stablecoin billing. tempRouter ships the half MPP left open — provable confidentiality — and fuses it into the payment handshake, so money moves only against a named, attested enclave.</p>
+  <p class="lede">MPP already does per-chunk stablecoin billing. tempRouter ships the half MPP left open — provable confidentiality — a payable inference endpoint whose prompt is E2E-encrypted to a real Intel TDX enclave you verify before you pay.</p>
   <div class="grid">
-    <div class="card"><h3><span class="ico"></span>Attestation-gated payment</h3><p>The 402 challenge HMAC-binds <code>sha256(tdxQuote)</code>; the agent verifies the quote before signing the first voucher. Money moves only against a named, attested enclave.</p></div>
+    <div class="card"><h3><span class="ico"></span>Verify before you pay</h3><p>The agent runs Intel DCAP on the live enclave quote <b>before</b> signing the first voucher — fail the check and it signs zero vouchers. A bad enclave can't decrypt the prompt anyway, so money only moves for inference you proved is confidential.</p></div>
     <div class="card"><h3><span class="ico"></span>Two-phase Intel DCAP verify</h3><p>Pre-pay: genuine TDX hardware + UpToDate TCB + code measurement. Post-pay receipt: ed25519 over the exact ciphertext + key binding. Auditable on the wire.</p></div>
     <div class="card p"><h3><span class="ico"></span>Blind relay</h3><p>Prompts are E2E-encrypted (Arcium RescueCipher + X25519) to a key that exists only inside the enclave. tempRouter never holds a key and never sees plaintext.</p></div>
     <div class="card p"><h3><span class="ico"></span>Client-side secret/PII policy</h3><p>The agent detects API keys, private keys, JWTs and PII locally and forces the private lane — the right call because a blind relay can't classify what it can't read.</p></div>
-    <div class="card"><h3><span class="ico"></span>Per-chunk MPP metering</h3><p>TIP-1034 session vouchers over SSE: one response-chunk = one tick, the balance ticks as it streams, ~2 on-chain txs for the whole session, paid in pathUSD.</p></div>
+    <div class="card"><h3><span class="ico"></span>MPP session metering</h3><p>MPP <code>session</code> vouchers over SSE: pay per response-chunk in pathUSD, settled in ~2 on-chain txs. Bills one charge per inference; multi-chunk metering is supported.</p></div>
     <div class="card"><h3><span class="ico"></span>Discoverable + payable</h3><p>OpenAI-shaped request, MPP 402 flow, and an OpenAPI discovery doc so any agent or registry (mpp.dev/services, MPPScan) can find and pay the endpoint.</p></div>
   </div>
 </div></section>
@@ -167,7 +167,7 @@
   <pre><span class="c"># or straight from a shell / agent terminal</span>
 $ temprouter infer <span class="s">"rotate this leaked sk-proj-… key — exact steps"</span>
 <span class="g">  🔒 sensitive payload detected (openai-key) → forcing attested private lane</span>
-<span class="g">  ✅ TDX verified  ·  💸 4 chunks · 0.0008 pathUSD  ·  🔓 decrypted locally</span></pre>
+<span class="g">  ✅ TDX verified  ·  💸 0.0002 pathUSD / inference  ·  🔓 decrypted locally</span></pre>
 </div></section>
 
 <section id="endpoints"><div class="wrap">

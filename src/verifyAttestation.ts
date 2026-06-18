@@ -10,7 +10,7 @@
 //   1. The TDX quote is genuine Intel hardware (DCAP: sig → PCK chain → Intel root + TCB).
 //   2. The quote commits to the enclave keys: report_data == sha512("app-data:" || sha256(teePub||enclavePub)).
 //   3. The enclave ed25519-signed THIS exact ciphertext (SOLR-ATTEST-v2 envelope).
-//   4. sha256(JSON.stringify(tdxQuote)) == encryptionProof.tdxQuoteHash (and, in agent.ts, == challenge.externalId).
+//   4. sha256(JSON.stringify(tdxQuote)) == encryptionProof.tdxQuoteHash (the enclave committed to its own quote digest — self-consistency, NOT a payment/voucher binding).
 
 import { getCollateralAndVerify } from '@phala/dcap-qvl'
 import { createHash, verify as edVerify, createPublicKey } from 'node:crypto'
@@ -57,7 +57,7 @@ export type Check = { name: string; pass: boolean; detail?: string }
 export type VerifyReport = {
   ok: boolean
   checks: Check[]
-  /** sha256(JSON.stringify(tdxQuote)) — the agent compares this to the 402 challenge externalId. */
+  /** sha256(JSON.stringify(tdxQuote)) — the enclave's own quote digest (== encryptionProof.tdxQuoteHash). Not bound to any voucher. */
   tdxQuoteDigest: string
   measurement: { mrtd?: string; rtmr?: string }
 }
@@ -106,7 +106,7 @@ export type AttestationDoc = {
  * PRE-PAY gate. Verifies the free `/tee/attestation` quote BEFORE the agent pays:
  * proves we're talking to genuine, up-to-date Intel TDX hardware advertising
  * `teePublicKey`, and pins/displays the code measurement. Returns `tdxQuoteDigest`
- * which the agent binds against the MPP 402 `externalId` (ADR-0002).
+ * (the enclave's own quote digest) for display/logging — it is NOT bound to a voucher.
  *
  * NOTE: the strong key→quote binding (ed25519 over the exact ciphertext) is only
  * provable from the /process receipt → see verifyAttestation() (post-pay). Pre-pay

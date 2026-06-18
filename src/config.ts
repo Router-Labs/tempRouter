@@ -18,9 +18,9 @@ export const config = {
   pricePerUnit: process.env.PRICE_PER_UNIT ?? '0.0002', // per response-chunk (session/SSE)
   // How many SSE chunks the blind relay slices the enclave's single ciphertext
   // blob into — each chunk = one MPP voucher tick, so the payer's balance visibly
-  // ticks per chunk. Multi-unit metering is fixed + verified end-to-end (ADR-0003);
-  // default 4 so the demo shows several ticks. Override with CHUNK_COUNT.
-  chunkCount: Number(process.env.CHUNK_COUNT ?? 4),
+  // ticks per chunk. Multi-unit metering is fixed + verified end-to-end (ADR-0003).
+  // Default 1 = one charge per inference; set CHUNK_COUNT>1 to meter a response in N ticks.
+  chunkCount: Number(process.env.CHUNK_COUNT ?? 1),
 
   // Real Phala Intel TDX enclave (the private upstream). When unset → stub mode.
   teeEndpoint: (process.env.TEE_ENDPOINT ?? '').replace(/\/$/, ''),

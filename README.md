@@ -1,7 +1,7 @@
 # tempRouter
 
 > **Pay an LLM only after you can prove it never saw your prompt.**
-> MPP-paid, attestation-gated private AI inference on Tempo. — *Berlin MPP Hackathon @ Futura Camp 2026.*
+> A payable endpoint for inference on MPP — pay per response-chunk in pathUSD, end-to-end encrypted to a real Intel TDX enclave you verify before you pay. — *Berlin MPP Hackathon @ Futura Camp 2026.*
 
 **🟢 Live:** https://temprouter.onrender.com · [`/openapi.json`](https://temprouter.onrender.com/openapi.json) · [`/tee/attestation`](https://temprouter.onrender.com/tee/attestation)
 
@@ -10,10 +10,10 @@ cryptographically verifies (Intel DCAP) that the prompt runs inside a **real Pha
 Intel TDX enclave** that can't read it. tempRouter is a **blind relay**: it forwards
 ciphertext, holds no key, and never sees plaintext.
 
-Payment was the easy half — MPP already does per-token stablecoin billing. The new
-contribution is the half MPP left open: **provable confidentiality fused into the
-payment handshake** (the 402 challenge binds the enclave quote digest; the agent
-verifies it before signing the first voucher).
+Payment is the easy half — MPP already does per-chunk stablecoin billing. What
+tempRouter adds: **provable confidentiality on a payable endpoint** — the prompt is
+end-to-end encrypted to a real Intel TDX enclave, and the agent runs Intel DCAP on the
+live quote and refuses to pay (signs zero vouchers) unless the enclave is genuine.
 
 ## How it fits together
 
@@ -26,7 +26,7 @@ agent (src/agent.ts)
         │
         ▼
 tempRouter (src/server.ts)  ── BLIND RELAY (holds no key)
-  · mppx.session({sse:true}) gates payment; binds sha256(tdxQuote) into challenge meta
+  · mppx.session({sse:true}) gates payment per response-chunk (402 → pay → SSE stream)
   · forwards ciphertext → real Phala Intel TDX /process → meters reply chunks (withReceipt)
         │
         ▼
@@ -54,7 +54,7 @@ pathUSD → decrypt):
 | **SDK** — [`@temprouter/sdk`](sdk/) | `new TempRouter({ serverUrl, account }).infer(prompt)` → `{ answer, units, paid }`. A failed gate throws `AttestationError` and pays zero. |
 | **CLI** — [`cli/`](cli/) | `npm run cli -- infer "<prompt>"` (also `verify`, `detect`). |
 | **MCP** — [`mcp/`](mcp/) | local stdio server: tools `private_inference`, `detect_sensitive`, `verify_enclave`. Encryption + wallet stay in your agent's process. |
-| **Skill** — [`skill/temprouter`](skill/temprouter/SKILL.md) | entrypoint that auto-routes secret/PII prompts to the private lane. |
+| **Skill** — [`skills/temprouter`](skills/temprouter/SKILL.md) | agent entrypoint: `npx skills add Router-Labs/tempRouter`, or read it live at [`/SKILL.md`](https://temprouter.onrender.com/SKILL.md). Auto-routes secret/PII prompts to the private lane. |
 
 ```ts
 import { TempRouter, detectSensitive } from '@temprouter/sdk'
@@ -120,7 +120,7 @@ decrypt to plaintext answer.`
 - ✅ Funded testnet wallet (`mppx account temprouter`).
 
 **✅ ADR-0003 closed (2026-06-17) — see [ADR-0003](docs/adr/0003-per-unit-sse-metering.md):**
-- ✅ Multi-unit streaming (`CHUNK_COUNT > 1`) — the balance ticks per chunk; default `chunkCount=4`. (Fixed a request-classification bug where header-only voucher POSTs were misread as billable content.)
+- ✅ Multi-unit streaming (`CHUNK_COUNT > 1`) is supported + verified; **prod bills one charge per inference** (`CHUNK_COUNT=1`). (Fixed a request-classification bug where header-only voucher POSTs were misread as billable content.)
 - ✅ Cooperative `manager.close()` settles on-chain as the payee (opt-in via `TEMPO_RECIPIENT_PRIVATE_KEY`).
 - ✅ SDK · CLI · MCP · agent skill shipped (see **Integrate** above), all verified end-to-end on testnet.
 
