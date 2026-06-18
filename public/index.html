@@ -4,325 +4,246 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="dark" />
-<title>tempRouter — payable, end-to-end-encrypted LLM inference on MPP</title>
-<meta name="description" content="A payable inference endpoint on MPP (Tempo). Pay per response-chunk in pathUSD after your agent verifies a real Intel TDX enclave with Intel DCAP — end-to-end encrypted, the relay is blind. Drop-in via SDK, CLI, MCP, or agent skill." />
+<title>tempRouter — payable private inference on MPP</title>
+<meta name="description" content="Pay an LLM only after you prove it never saw your prompt. MPP-payable, end-to-end encrypted inference on Tempo. Verify a real Intel TDX enclave with DCAP, then pay per response-chunk." />
 <link rel="canonical" href="https://temprouter.onrender.com/" />
-<!-- Agent / registry discovery surfaces -->
 <link rel="service-desc" type="application/json" href="/openapi.json" title="MPP / OpenAPI discovery" />
 <link rel="alternate" type="text/markdown" href="/llms.txt" title="llms.txt — agent context" />
 <link rel="alternate" type="text/markdown" href="/SKILL.md" title="Agent skill entrypoint" />
-<!-- Open Graph / Twitter -->
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="tempRouter" />
-<meta property="og:title" content="tempRouter — payable, E2E-encrypted LLM inference on MPP" />
-<meta property="og:description" content="Pay an LLM in pathUSD only after your agent proves (Intel DCAP) it runs inside a real Intel TDX enclave that can't read the prompt." />
+<meta property="og:title" content="tempRouter — payable private inference on MPP" />
+<meta property="og:description" content="Pay an LLM only after you prove it never saw your prompt. Verify a real Intel TDX enclave, then pay per response-chunk in stablecoin." />
 <meta property="og:url" content="https://temprouter.onrender.com/" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="tempRouter — payable, E2E-encrypted LLM inference on MPP" />
-<meta name="twitter:description" content="Verify a real Intel TDX enclave, then pay per response-chunk in pathUSD. End-to-end encrypted; the relay is blind." />
+<meta name="twitter:title" content="tempRouter — payable private inference on MPP" />
+<meta name="twitter:description" content="Verify a real Intel TDX enclave, then pay per response-chunk. End-to-end encrypted; the relay is blind." />
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebAPI",
   "name": "tempRouter",
-  "description": "Payable, end-to-end-encrypted LLM inference on MPP (Tempo). Verify a real Intel TDX enclave with Intel DCAP, then pay per response-chunk in pathUSD.",
+  "description": "Payable, end-to-end-encrypted LLM inference on MPP (Tempo). Verify a real Intel TDX enclave with Intel DCAP, then pay per response-chunk.",
   "url": "https://temprouter.onrender.com/",
   "documentation": "https://temprouter.onrender.com/llms.txt",
   "provider": { "@type": "Organization", "name": "Router Labs", "url": "https://github.com/Router-Labs" },
-  "offers": { "@type": "Offer", "price": "0.0002", "priceCurrency": "pathUSD", "description": "per response-chunk, MPP session on Tempo" }
+  "offers": { "@type": "Offer", "price": "0.0002", "priceCurrency": "USDC", "description": "per response-chunk, MPP session on Tempo" }
 }
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --bg:#0a0908; --bg-raised:#070605; --bg-card:#0c0b09;
-    --text:#e8e0d4; --text-strong:#f4ede0; --muted:#b9b0a3; --faint:#8f887c; --subtle:#6b645a;
-    --cream:#F5E6D3; --purple:#7c6cf0; --purple-soft:#a78bfa; --green:#7fae8a;
-    --border-faint:rgba(245,230,211,.06); --border:rgba(245,230,211,.11); --border-strong:rgba(245,230,211,.22);
-    --serif:"Instrument Serif","Times New Roman",serif;
-    --sans:"DM Sans",system-ui,-apple-system,sans-serif;
-    --mono:"JetBrains Mono",ui-monospace,monospace;
-    --gut:28px;
+    --bg:#0a0a0a; --bg-raised:#111; --bg-term:#0d0d0d;
+    --text:#e5e5e5; --text-strong:#fff; --muted:#999; --faint:#666; --subtle:#444;
+    --accent:#00ff88; --accent-dim:#00cc6a;
+    --purple:#a78bfa; --purple-dim:#7c6cf0;
+    --border:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.16);
+    --mono:"SF Mono",ui-monospace,"Cascadia Code","Fira Code",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{
-    background:var(--bg); color:var(--text); font-family:var(--sans);
-    line-height:1.6; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
-    background-image:
-      linear-gradient(rgba(245,230,211,.028) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(245,230,211,.028) 1px,transparent 1px);
-    background-size:60px 60px;
-  }
-  .wrap{max-width:1000px;margin:0 auto;padding:0 var(--gut)}
-  a{color:var(--cream);text-decoration:none;transition:color .15s ease}
-  a:hover{color:var(--text-strong);text-decoration:underline;text-underline-offset:3px}
-  a:focus-visible,button:focus-visible{outline:2px solid var(--purple-soft);outline-offset:3px;border-radius:5px}
-  code{font-family:var(--mono);font-size:.88em;color:var(--cream);background:rgba(245,230,211,.06);padding:1px 6px;border-radius:5px}
-  pre code{background:none;padding:0;color:inherit}
-  .period{color:var(--cream)}
-  .skip{position:absolute;left:-999px;top:0;background:var(--cream);color:#000;padding:10px 14px;border-radius:6px;z-index:50}
-  .skip:focus{left:12px;top:12px}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none;transition:opacity .15s}
+  a:hover{opacity:.8}
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px}
 
-  /* header */
-  header{border-bottom:1px solid var(--border-faint);position:sticky;top:0;background:rgba(10,9,8,.82);backdrop-filter:blur(12px);z-index:20}
-  header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
-  .brand{font-family:var(--mono);font-size:14px;letter-spacing:.04em;color:var(--text-strong)}
-  .brand b{color:var(--cream);font-weight:500}
-  nav{display:flex;align-items:center;gap:22px}
+  /* Header */
+  header{position:sticky;top:0;background:rgba(10,10,10,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);z-index:20}
+  header .wrap{display:flex;align-items:center;justify-content:space-between;height:56px}
+  .logo{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text-strong);letter-spacing:-.02em}
+  .logo span{color:var(--accent)}
+  nav{display:flex;gap:20px;align-items:center}
   nav a{font-family:var(--mono);font-size:12px;color:var(--muted)}
-  nav a:hover{color:var(--cream);text-decoration:none}
-  .live{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:5px 11px}
-  .live .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(127,174,138,.18)}
+  nav a:hover{color:var(--text-strong);opacity:1}
+  .status{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--accent);border:1px solid rgba(0,255,136,.2);border-radius:99px;padding:4px 10px}
+  .status .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
 
-  /* type */
-  .label{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);display:block}
-  h1{font-family:var(--serif);font-weight:400;font-size:clamp(46px,8vw,96px);line-height:.97;color:var(--text-strong);letter-spacing:-.012em}
-  h2{font-family:var(--serif);font-weight:400;font-size:clamp(30px,4.4vw,44px);color:var(--text-strong);margin:10px 0 8px;letter-spacing:-.01em}
-  h3{font-size:16px;color:var(--text-strong);font-weight:600}
-  .lede{color:var(--muted);max-width:66ch;font-size:16px}
+  /* Hero */
+  .hero{padding:100px 0 72px;text-align:center}
+  .hero h1{font-size:clamp(40px,7vw,80px);font-weight:800;line-height:1.05;letter-spacing:-.03em;color:var(--text-strong);margin-bottom:20px}
+  .hero h1 .green{color:var(--accent)}
+  .hero .tagline{font-size:clamp(16px,2vw,20px);color:var(--muted);max-width:560px;margin:0 auto 32px}
+  .hero .tagline b{color:var(--text);font-weight:500}
+  .hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;padding:12px 20px;border-radius:8px;border:none;cursor:pointer;text-decoration:none;transition:all .15s}
+  .btn-primary{background:var(--accent);color:#000;font-weight:600}
+  .btn-primary:hover{background:var(--accent-dim);opacity:1}
+  .btn-ghost{background:transparent;border:1px solid var(--border-strong);color:var(--text)}
+  .btn-ghost:hover{border-color:var(--accent);opacity:1}
 
-  section{padding:72px 0;border-bottom:1px solid var(--border-faint)}
-  .hero{padding:108px 0 84px;border-bottom:1px solid var(--border-faint)}
-  .hero .sub{margin-top:26px;font-size:clamp(18px,2.3vw,22px);color:var(--muted);max-width:62ch}
-  .hero .sub b{color:var(--text-strong);font-weight:500}
+  /* Terminal */
+  .terminal-section{padding:0 0 80px}
+  .terminal{background:var(--bg-term);border:1px solid var(--border);border-radius:12px;overflow:hidden;max-width:680px;margin:0 auto;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+  .terminal-head{display:flex;align-items:center;gap:6px;padding:12px 16px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)}
+  .terminal-head .dot{width:11px;height:11px;border-radius:50%}
+  .terminal-head .dot.red{background:#ff5f57}
+  .terminal-head .dot.yellow{background:#ffbd2e}
+  .terminal-head .dot.green{background:#28ca42}
+  .terminal-head .title{font-family:var(--mono);font-size:12px;color:var(--faint);margin-left:8px}
+  .terminal-body{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.8;color:var(--muted);text-align:left;overflow-x:auto}
+  .terminal-body .prompt{color:var(--accent)}
+  .terminal-body .cmd{color:var(--text-strong)}
+  .terminal-body .flag{color:var(--purple)}
+  .terminal-body .str{color:#e5e5e5}
+  .terminal-body .ok{color:var(--accent)}
+  .terminal-body .warn{color:#ffbd2e}
+  .terminal-body .dim{color:var(--faint)}
+  .terminal-body .comment{color:var(--subtle);font-style:italic}
+  .terminal-body .pay{color:var(--accent);font-weight:500}
 
-  /* badges + buttons */
-  .badges{margin-top:30px;display:flex;flex-wrap:wrap;gap:9px}
-  .pill{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:7px 13px}
-  .pill .d{color:var(--cream)}
-  .pill.accent{border-color:rgba(167,139,250,.4);color:var(--purple-soft)}
-  .pill.accent .d{color:var(--purple)}
-  .cta{margin-top:34px;display:flex;flex-wrap:wrap;gap:12px}
-  .btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:13px;padding:12px 20px;border-radius:9px;min-height:44px}
-  .btn.primary{background:var(--cream);color:#0a0908;font-weight:500}
-  .btn.primary:hover{background:#fff;text-decoration:none}
-  .btn.ghost{border:1px solid var(--border-strong);color:var(--text-strong)}
-  .btn.ghost:hover{border-color:var(--cream);text-decoration:none}
-  .arrow{font-size:15px}
+  /* Features */
+  .features{padding:72px 0;border-top:1px solid var(--border)}
+  .features h2{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;text-align:center;margin-bottom:48px}
+  .features h2 .green{color:var(--accent)}
+  .feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+  .feature{padding:24px;border:1px solid var(--border);border-radius:12px;background:var(--bg-raised)}
+  .feature .icon{font-size:20px;margin-bottom:12px}
+  .feature h3{font-size:15px;font-weight:600;color:var(--text-strong);margin-bottom:8px}
+  .feature p{font-size:14px;color:var(--muted);line-height:1.5}
+  .feature code{font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(0,255,136,.06);padding:1px 5px;border-radius:3px}
 
-  /* code / terminal */
-  pre{background:var(--bg-raised);border:1px solid var(--border);border-radius:12px;padding:22px 24px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.75;color:var(--text);margin-top:26px}
-  pre .c{color:var(--subtle)} pre .k{color:var(--purple-soft)} pre .s{color:var(--cream)} pre .g{color:var(--green)} pre .m{color:var(--faint)}
-  .term{margin-top:34px}
-  .term .bar{display:flex;gap:7px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-bottom:none;border-radius:12px 12px 0 0}
-  .term .bar i{width:11px;height:11px;border-radius:50%;background:var(--border-strong);display:block}
-  .term pre{margin-top:0;border-radius:0 0 12px 12px}
+  /* Integrate */
+  .integrate{padding:72px 0;border-top:1px solid var(--border)}
+  .integrate h2{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;text-align:center;margin-bottom:16px}
+  .integrate p.center{text-align:center;color:var(--muted);margin-bottom:40px}
+  .surfaces{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px}
+  .surface{padding:20px;border:1px solid var(--border);border-radius:10px;text-align:center;background:var(--bg-raised)}
+  .surface .label{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.05em;margin-bottom:8px}
+  .surface h3{font-size:14px;font-weight:600;color:var(--text-strong);margin-bottom:6px}
+  .surface p{font-size:13px;color:var(--muted)}
+  .code-block{background:var(--bg-term);border:1px solid var(--border);border-radius:10px;padding:20px;font-family:var(--mono);font-size:13px;line-height:1.7;overflow-x:auto;max-width:680px;margin:0 auto}
+  .code-block .comment{color:var(--subtle)}
+  .code-block .keyword{color:var(--purple)}
+  .code-block .string{color:var(--accent)}
+  .code-block .fn{color:#e5e5e5}
 
-  /* grids / cards */
-  .grid{margin-top:30px;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border-faint);border:1px solid var(--border-faint);border-radius:12px;overflow:hidden}
-  .grid.two{grid-template-columns:repeat(2,1fr)}
-  .card{background:var(--bg-card);padding:26px}
-  .card h3{margin-bottom:9px;display:flex;align-items:center;gap:9px}
-  .card .ico{width:7px;height:7px;border-radius:2px;background:var(--cream);flex:none}
-  .card.p .ico{background:var(--purple)}
-  .card p{color:var(--muted);font-size:14.5px}
-  .card .tag{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.03em;margin-bottom:6px}
+  /* Footer */
+  footer{padding:48px 0 32px;border-top:1px solid var(--border)}
+  footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+  footer .links{display:flex;gap:16px;flex-wrap:wrap}
+  footer .links a{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  footer .meta{font-family:var(--mono);font-size:11px;color:var(--faint)}
 
-  /* flow */
-  ol.flow{margin-top:30px;counter-reset:s;list-style:none;display:grid;gap:16px}
-  ol.flow li{position:relative;padding-left:46px;color:var(--muted);font-size:15px}
-  ol.flow li b{color:var(--text-strong);font-weight:500}
-  ol.flow li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:-2px;width:28px;height:28px;border:1px solid var(--border-strong);border-radius:50%;display:grid;place-items:center;font-family:var(--mono);font-size:12px;color:var(--cream)}
-
-  /* endpoint rows */
-  .endpoint{margin-top:16px;border:1px solid var(--border);border-radius:11px;overflow:hidden;background:var(--bg-raised)}
-  .endpoint .top{display:flex;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid var(--border-faint);flex-wrap:wrap}
-  .verb{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;padding:3px 9px;border-radius:6px;border:1px solid var(--border-strong);color:var(--cream)}
-  .verb.get{color:var(--purple-soft);border-color:rgba(167,139,250,.4)}
-  .path{font-family:var(--mono);font-size:14px;color:var(--text-strong)}
-  .endpoint .top .meta{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--faint)}
-  .endpoint .desc{padding:13px 18px;color:var(--muted);font-size:14px}
-
-  /* diagram + checks */
-  .diagram{margin-top:30px;background:var(--bg-raised);border:1px solid var(--border);border-radius:12px;padding:24px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.85;color:var(--muted);white-space:pre}
-  .diagram b{color:var(--text-strong);font-weight:500} .diagram .a{color:var(--purple-soft)} .diagram .g{color:var(--green)}
-  .checks{margin-top:30px;display:grid;grid-template-columns:1fr 1fr;gap:14px 36px}
-  .checks div{display:flex;gap:11px;color:var(--muted);font-size:14.5px}
-  .checks .ok{color:var(--green);flex:none;font-family:var(--mono)}
-  .checks b{color:var(--text-strong);font-weight:500}
-
-  .note{margin-top:26px;font-size:13.5px;color:var(--faint);max-width:74ch}
-  .note b{color:var(--muted);font-weight:500}
-
-  footer{padding:52px 0 68px;border:none}
-  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:18px;align-items:flex-end}
-  footer .links{display:flex;flex-wrap:wrap;gap:20px}
-  footer .links a{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
-  footer .fine{font-family:var(--mono);font-size:11px;color:var(--subtle);letter-spacing:.03em}
-
-  @media (max-width:760px){
-    .grid,.grid.two{grid-template-columns:1fr}
-    .checks{grid-template-columns:1fr}
-    nav .hide{display:none}
-    section,.hero{padding:56px 0}
+  @media(max-width:640px){
+    .hero{padding:60px 0 48px}
+    .features,.integrate{padding:48px 0}
+    nav .hide-sm{display:none}
   }
-  @media (prefers-reduced-motion: reduce){
+  @media(prefers-reduced-motion:reduce){
     html{scroll-behavior:auto}
-    *{transition:none !important;animation:none !important}
+    *{transition:none!important;animation:none!important}
   }
 </style>
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
 <header><div class="wrap">
-  <div class="brand">temp<b>Router</b><span class="period">.</span></div>
+  <div class="logo">temp<span>Router</span></div>
   <nav>
-    <a href="#why" class="hide">Why</a>
-    <a href="#flow" class="hide">Flow</a>
-    <a href="#integrate">Integrate</a>
-    <a href="#endpoints">Endpoints</a>
+    <a href="#how" class="hide-sm">How it works</a>
+    <a href="#integrate" class="hide-sm">Integrate</a>
     <a href="https://github.com/Router-Labs/tempRouter">GitHub</a>
-    <span class="live"><span class="dot" aria-hidden="true"></span>live · tdx</span>
+    <span class="status"><span class="dot"></span>live · TDX</span>
   </nav>
 </div></header>
 
-<main id="main">
+<main>
 
 <div class="hero"><div class="wrap">
-  <span class="label">Payable inference · MPP · Tempo · Phala Intel TDX</span>
-  <h1>Pay an LLM only after you<br/>prove it never saw your prompt<span class="period">.</span></h1>
-  <p class="sub">tempRouter is a <b>payable inference endpoint on MPP</b>. Your agent verifies, with Intel DCAP, that the prompt runs inside a <b>real Intel TDX enclave</b> that can't read it — then pays per response-chunk in <b>pathUSD</b> on Tempo. End-to-end encrypted; the relay is blind. Ships as an <b>SDK, CLI, MCP server, and agent skill</b>.</p>
-  <div class="badges">
-    <span class="pill accent"><span class="d">●</span> no API key · no signup</span>
-    <span class="pill"><span class="d">●</span> verify-before-pay</span>
-    <span class="pill"><span class="d">●</span> per-chunk MPP metering</span>
-    <span class="pill"><span class="d">●</span> blind relay · ciphertext only</span>
-    <span class="pill"><span class="d">●</span> real Intel TDX (DCAP)</span>
-  </div>
-  <div class="cta">
-    <a class="btn primary" href="/SKILL.md">Agent entrypoint <span class="arrow" aria-hidden="true">→</span> /SKILL.md</a>
-    <a class="btn ghost" href="/openapi.json">/openapi.json</a>
-    <a class="btn ghost" href="https://github.com/Router-Labs/tempRouter">GitHub</a>
-  </div>
-
-  <div class="term" aria-label="example payment flow">
-    <div class="bar"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i></div>
-<pre><span class="c"># the whole handshake — verify, then pay</span>
-$ agent → <span class="s">POST /v1/chat/completions/stream</span>
-  ← <span class="k">402 Payment Required</span>   <span class="m">(mppx session · pathUSD · Tempo Moderato)</span>
-$ verify enclave <span class="m">(Intel DCAP)</span>     → <span class="g">✅ INTEL-TDX-PHALA · quote authentic · key bound</span>
-$ encrypt prompt → enclave key   <span class="m">(Arcium RescueCipher + X25519)</span>
-$ pay + retry                    → <span class="k">200 OK</span> · SSE ciphertext · <span class="g">💸 0.0002 pathUSD</span>
-$ decrypt locally                → <span class="g">plaintext — seen only by you + the enclave</span></pre>
+  <h1>Pay an LLM only after<br/>you <span class="green">prove</span> it never<br/>saw your prompt.</h1>
+  <p class="tagline">An <b>MPP-payable inference endpoint</b>. Your agent verifies a real <b>Intel TDX enclave</b> with DCAP — then pays per response-chunk in stablecoin on Tempo. End-to-end encrypted. The relay is blind.</p>
+  <div class="hero-cta">
+    <a class="btn btn-primary" href="/SKILL.md">Agent skill →</a>
+    <a class="btn btn-ghost" href="/openapi.json">/openapi.json</a>
+    <a class="btn btn-ghost" href="https://github.com/Router-Labs/tempRouter">GitHub</a>
   </div>
 </div></div>
 
-<section id="why"><div class="wrap">
-  <span class="label">Why</span>
-  <h2>Payment was the easy half<span class="period">.</span></h2>
-  <p class="lede">MPP already does per-chunk stablecoin billing. tempRouter ships the half MPP left open — <b>provable confidentiality</b> — as a payable endpoint any agent can discover and pay.</p>
-  <div class="grid">
-    <div class="card"><h3><span class="ico" aria-hidden="true"></span>Verify before you pay</h3><p>The agent runs Intel DCAP on the live enclave quote <b>before</b> signing the first voucher. Fail the check, sign zero vouchers — and a bad enclave can't decrypt the prompt anyway.</p></div>
-    <div class="card"><h3><span class="ico" aria-hidden="true"></span>Two-phase attestation</h3><p>Pre-pay: genuine TDX + UpToDate TCB + key binding + code measurement. Post-pay receipt: enclave ed25519 over the exact ciphertext. Every check is auditable on the wire.</p></div>
-    <div class="card p"><h3><span class="ico" aria-hidden="true"></span>Blind relay</h3><p>The prompt is E2E-encrypted (Arcium RescueCipher + X25519) to a key that only exists inside the enclave. tempRouter holds no key and never sees plaintext — it forwards ciphertext.</p></div>
-    <div class="card p"><h3><span class="ico" aria-hidden="true"></span>Client-side secret policy</h3><p>Your agent detects API keys, private keys, JWTs and PII locally and forces the private lane — the only correct place, since a blind relay can't classify what it can't read.</p></div>
-    <div class="card"><h3><span class="ico" aria-hidden="true"></span>Per-chunk MPP metering</h3><p>An MPP <code>session</code> over SSE: pay per response-chunk in pathUSD, settled in ~2 on-chain txs. One charge per inference by default; multi-chunk metering supported.</p></div>
-    <div class="card"><h3><span class="ico" aria-hidden="true"></span>Discoverable + payable</h3><p>OpenAI-shaped request, MPP 402 flow, and a machine-readable discovery doc so any agent or registry (mpp.dev/services, MPPScan) can find and pay the endpoint.</p></div>
+<div class="terminal-section"><div class="wrap">
+  <div class="terminal">
+    <div class="terminal-head">
+      <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+      <span class="title">agent — temprouter infer</span>
+    </div>
+    <div class="terminal-body">
+<span class="comment"># your agent detects a secret in the prompt → forces the private lane</span>
+<span class="prompt">$</span> <span class="cmd">temprouter</span> <span class="flag">infer</span> <span class="str">"rotate leaked key sk-proj-…uvwx"</span>
+
+<span class="warn">🔒</span> <span class="dim">sensitive payload detected (openai-key) → forcing attested private lane</span>
+
+<span class="comment">── pre-pay attestation gate ──</span>
+<span class="ok">✅</span> <span class="dim">real TDX enclave advertised</span> <span class="dim">(INTEL-TDX-PHALA)</span>
+<span class="ok">✅</span> <span class="dim">DCAP quote authentic</span> <span class="dim">(Intel-signed, TCB UpToDate)</span>
+<span class="ok">✅</span> <span class="dim">measurement verified</span> <span class="dim">(mrtd=f06d…)</span>
+<span class="ok">✅✅ independently verified — genuine TDX, bound keys</span>
+
+<span class="comment">── encrypt → pay → stream ──</span>
+<span class="prompt">$</span> <span class="dim">encrypt prompt → enclave key (Arcium + X25519)</span>
+<span class="prompt">$</span> <span class="dim">pay per response-chunk via MPP session on Tempo</span>
+  <span class="pay">💸 0.0002 USDC · 1 chunk · session settled on-chain</span>
+
+<span class="comment">── decrypt locally ──</span>
+<span class="ok">🔓</span> <span class="dim">plaintext seen only by you + the attested enclave</span>
+<span class="dim">→ "Rotate immediately: revoke in dashboard → generate new key</span>
+<span class="dim">   → update secrets store → redeploy → audit logs…"</span>
+    </div>
   </div>
-</div></section>
+</div></div>
 
-<section id="arch"><div class="wrap">
-  <span class="label">Architecture</span>
-  <h2>Three parties, one blind hop<span class="period">.</span></h2>
-  <p class="lede">Plaintext is only ever seen by your agent and the attested enclave. tempRouter sits in the middle and forwards ciphertext — it cannot read the prompt or the answer.</p>
-<div class="diagram" aria-label="architecture diagram"><span class="a">agent</span>  (your process)
-  │  detectSensitive → verify (DCAP) → encrypt → pay → decrypt
-  │  <span class="g">holds the wallet + the only decryption key</span>
-  ▼  ciphertext + MPP vouchers
-<b>tempRouter</b>  (this service — BLIND RELAY, holds no key)
-  │  mppx session: 402 → pay-per-response-chunk → SSE
-  │  forwards ciphertext, meters the reply, never sees plaintext
-  ▼  ciphertext
-<span class="a">Phala Intel TDX enclave</span>  (SolRouter prod · chain-agnostic)
-     decrypts INSIDE hardware · runs gpt-oss:20b · re-encrypts
-     returns a TDX-attested receipt (ed25519 over the ciphertext)</div>
-</div></section>
-
-<section id="flow"><div class="wrap">
-  <span class="label">Flow</span>
-  <h2>How an agent uses it<span class="period">.</span></h2>
-  <ol class="flow">
-    <li><b>Detect</b> — your agent's policy flags a secret/PII payload and forces the private lane. Non-sensitive prompts go to any public model (out of scope).</li>
-    <li><b>Verify</b> — <code>GET /tee/attestation</code>, run Intel DCAP on the quote. Fail → sign zero vouchers, refuse to pay.</li>
-    <li><b>Encrypt</b> — encrypt the prompt to the enclave's X25519 key. Plaintext never leaves the agent.</li>
-    <li><b>Pay</b> — <code>POST /v1/chat/completions/stream</code> → 402 → open an MPP session on Tempo, pay per response-chunk in pathUSD.</li>
-    <li><b>Decrypt</b> — reassemble the ciphertext chunks and decrypt locally. Only the agent and the attested enclave ever see plaintext.</li>
-  </ol>
-</div></section>
-
-<section id="integrate"><div class="wrap">
-  <span class="label">Integrate</span>
-  <h2>Drop it into your agent<span class="period">.</span></h2>
-  <p class="lede">Infrastructure, not a destination. The same verify-before-pay lane ships at four altitudes — each does the whole dance: verify → encrypt → pay per chunk → decrypt. Pick the one that fits.</p>
-
-  <pre><span class="c">// @temprouter/sdk — the whole lane in one call</span>
-<span class="k">import</span> { TempRouter, detectSensitive } <span class="k">from</span> <span class="s">'@temprouter/sdk'</span>
-
-<span class="k">const</span> client = <span class="k">new</span> TempRouter({ serverUrl: <span class="s">'https://temprouter.onrender.com'</span>, account }) <span class="c">// funded Tempo wallet</span>
-
-<span class="k">if</span> (detectSensitive(prompt).sensitive) {
-  <span class="k">const</span> { answer, paid } = <span class="k">await</span> client.infer(prompt) <span class="c">// verify → encrypt → pay → decrypt</span>
-}</pre>
-
-  <div class="grid two">
-    <div class="card"><div class="tag">@temprouter/sdk</div><h3><span class="ico" aria-hidden="true"></span>SDK</h3><p>One <code>client.infer(prompt)</code> call. Bundles encryption + mppx Tempo payment + Intel DCAP verify. A failed gate throws <code>AttestationError</code> and pays zero.</p></div>
-    <div class="card"><div class="tag">temprouter</div><h3><span class="ico" aria-hidden="true"></span>CLI</h3><p><code>temprouter infer "…"</code> — verify, pay per chunk, decrypt at the terminal. Plus <code>verify</code> (gate only, free) and <code>detect</code> (policy check).</p></div>
-    <div class="card p"><div class="tag">stdio · local</div><h3><span class="ico" aria-hidden="true"></span>MCP server</h3><p>Tools <code>private_inference</code>, <code>detect_sensitive</code>, <code>verify_enclave</code>. Runs in your agent's process — encryption + wallet never leave your trust domain.</p></div>
-    <div class="card p"><div class="tag">npx skills add Router-Labs/tempRouter</div><h3><span class="ico" aria-hidden="true"></span>Agent skill</h3><p>Drop the <code>temprouter</code> skill — or read it live at <a href="/SKILL.md">/SKILL.md</a> — and your agent auto-routes any secret/PII prompt to the private lane.</p></div>
+<div class="features" id="how"><div class="wrap">
+  <h2>Payment was the <span class="green">easy</span> half.</h2>
+  <div class="feature-grid">
+    <div class="feature">
+      <div class="icon">🔍</div>
+      <h3>Verify before you pay</h3>
+      <p>Your agent runs Intel DCAP on the live enclave quote <b>before</b> signing any voucher. Fail → sign zero vouchers. The enclave can't decrypt the prompt anyway.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">🔐</div>
+      <h3>Blind relay</h3>
+      <p>The prompt is E2E-encrypted to a key that only exists inside the enclave. tempRouter holds no key — it forwards ciphertext and meters the reply.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">💸</div>
+      <h3>Per-chunk MPP metering</h3>
+      <p>Native <code>session</code> over SSE: pay per response-chunk in stablecoin, settled in ~2 on-chain txs via Tempo. No API keys, no subscriptions.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">🧠</div>
+      <h3>Client-side secret policy</h3>
+      <p>Your agent detects API keys, private keys, JWTs and PII locally — and forces the private lane. The relay can't classify what it can't read.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">📜</div>
+      <h3>Full transparency</h3>
+      <p>Every check is auditable on the wire: DCAP cert chain, key binding, enclave ed25519 signature, quote digest. Nothing taken on trust.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">🔌</div>
+      <h3>Discoverable + payable</h3>
+      <p>OpenAPI + <code>llms.txt</code> + agent skill. Any MPP-speaking agent can discover and pay the endpoint — no human in the loop.</p>
+    </div>
   </div>
+</div></div>
 
-  <div class="term">
-    <div class="bar"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i></div>
-<pre><span class="c"># or straight from a shell / agent terminal</span>
-$ temprouter infer <span class="s">"rotate this leaked sk-proj-… key — exact steps"</span>
-<span class="g">  🔒 sensitive payload detected (openai-key) → forcing attested private lane</span>
-<span class="g">  ✅ TDX verified  ·  💸 0.0002 pathUSD / inference  ·  🔓 decrypted locally</span></pre>
+<div class="integrate" id="integrate"><div class="wrap">
+  <h2>Drop it into your agent.</h2>
+  <p class="center">Infrastructure, not a destination. Four surfaces, same verify-before-pay lane.</p>
+  <div class="surfaces">
+    <div class="surface"><div class="label">SDK</div><h3>@temprouter/sdk</h3><p>One <code>client.infer()</code> call</p></div>
+    <div class="surface"><div class="label">CLI</div><h3>temprouter</h3><p><code>temprouter infer "…"</code></p></div>
+    <div class="surface"><div class="label">MCP</div><h3>stdio server</h3><p>Tools for Claude, etc.</p></div>
+    <div class="surface"><div class="label">Skill</div><h3>agent skill</h3><p><code>npx skills add …</code></p></div>
   </div>
-</div></section>
+  <div class="code-block">
+<span class="comment">// @temprouter/sdk — the whole lane in one call</span>
+<span class="keyword">import</span> { <span class="fn">TempRouter</span>, <span class="fn">detectSensitive</span> } <span class="keyword">from</span> <span class="string">'@temprouter/sdk'</span>
 
-<section id="endpoints"><div class="wrap">
-  <span class="label">The payable endpoint</span>
-  <h2>Speak MPP, get inference<span class="period">.</span></h2>
-  <p class="lede">All four surfaces speak the same wire protocol. Any MPP-speaking agent can hit it directly — the 402 handshake handles pay → retry.</p>
-  <div class="endpoint">
-    <div class="top"><span class="verb">POST</span><span class="path">/v1/chat/completions/stream</span><span class="meta">0.0002 pathUSD / response-chunk</span></div>
-    <div class="desc">Attested confidential inference, metered per response-chunk over an MPP session (SSE). MPP <code>tempo</code> intent <code>session</code>, currency pathUSD, network Tempo Moderato (chain&nbsp;42431).</div>
+<span class="keyword">const</span> client = <span class="keyword">new</span> <span class="fn">TempRouter</span>({ serverUrl: <span class="string">'https://temprouter.onrender.com'</span>, account })
+<span class="keyword">if</span> (<span class="fn">detectSensitive</span>(prompt).sensitive) {
+  <span class="keyword">const</span> { answer, paid } = <span class="keyword">await</span> client.<span class="fn">infer</span>(prompt) <span class="comment">// verify → encrypt → pay → decrypt</span>
+}
   </div>
-  <div class="endpoint">
-    <div class="top"><span class="verb get">GET</span><span class="path">/tee/attestation</span><span class="meta">free · verify before you pay</span></div>
-    <div class="desc">The live enclave attestation (<code>teeType: INTEL-TDX-PHALA</code> + TDX quote). Verify with Intel DCAP before signing a voucher.</div>
-  </div>
-  <pre><span class="c"># any MPP-speaking agent — the CLI handles the 402 → pay → retry</span>
-tempo request <span class="s">https://temprouter.onrender.com/v1/chat/completions/stream</span> \
-  -d <span class="s">'{"encryptedPrompt":"…","model":"nosana:gpt-oss:20b"}'</span></pre>
-</div></section>
-
-<section id="discovery"><div class="wrap">
-  <span class="label">MPP service discovery</span>
-  <h2>Point your agent here<span class="period">.</span></h2>
-  <p class="lede">tempRouter publishes a machine-readable surface so agents and registries find the endpoint, its price, and its terms — no human in the loop.</p>
-  <div class="endpoint"><div class="top"><span class="verb get">GET</span><span class="path">/openapi.json</span><span class="meta">x-service-info · x-payment-info</span></div><div class="desc">OpenAPI 3.1 annotated with payment offers (amount, currency, intent, method) — listable on <a href="https://mpp.dev/services">mpp.dev/services</a> &amp; <a href="https://mppscan.com">MPPScan</a>.</div></div>
-  <div class="endpoint"><div class="top"><span class="verb get">GET</span><span class="path">/llms.txt</span><span class="meta">agent context</span></div><div class="desc">Plain-language context for agents: what the service is, when to use it, and the exact pay flow.</div></div>
-  <div class="endpoint"><div class="top"><span class="verb get">GET</span><span class="path">/SKILL.md</span><span class="meta">agent entrypoint</span></div><div class="desc">An installable agent skill — <code>npx skills add Router-Labs/tempRouter</code> — that auto-routes secret/PII prompts to the private lane.</div></div>
-</div></section>
-
-<section id="verify"><div class="wrap">
-  <span class="label">Trust, but verify</span>
-  <h2>What your agent actually checks<span class="period">.</span></h2>
-  <p class="lede">Nothing is taken on trust. Before any voucher is signed, the agent runs every check below and prints a per-check PASS/FAIL report.</p>
-  <div class="checks">
-    <div><span class="ok">✓</span><span><b>Intel DCAP cert chain.</b> The quote is genuine Intel TDX hardware (PCK chain → Intel root + TCB UpToDate).</span></div>
-    <div><span class="ok">✓</span><span><b>Key binding.</b> The quote's <code>report_data</code> commits to the enclave's X25519 + ed25519 keys.</span></div>
-    <div><span class="ok">✓</span><span><b>Enclave signature.</b> The in-enclave ed25519 key signed <em>this exact</em> ciphertext (post-pay receipt).</span></div>
-    <div><span class="ok">✓</span><span><b>Quote self-consistency.</b> The enclave committed to its own quote digest.</span></div>
-    <div><span class="ok">✓</span><span><b>Measurement.</b> <code>mrtd</code>/<code>rtmr</code> compared to the boot-advertised value (soft-pin); strict-pin opt-in.</span></div>
-    <div><span class="ok">✓</span><span><b>Fail-closed.</b> Any failure → zero vouchers signed, no payment, by construction.</span></div>
-  </div>
-  <p class="note"><b>Honest scope:</b> the private lane runs an OSS model (gpt-oss:20b) inside the enclave — use it for confidential payloads, not as a frontier-model replacement. Verification covers DCAP cert-chain + key binding + enclave signature; code-measurement pinning is opt-in. The enclave key is attached to the MPP session as a settlement <em>label</em>, not an enforced gate. Currently Tempo Moderato testnet, pathUSD.</p>
-</div></section>
+</div></div>
 
 </main>
 
@@ -333,10 +254,8 @@ tempo request <span class="s">https://temprouter.onrender.com/v1/chat/completion
     <a href="/llms.txt">/llms.txt</a>
     <a href="/openapi.json">/openapi.json</a>
     <a href="https://mpp.dev/services">mpp.dev/services</a>
-    <a href="https://explore.testnet.tempo.xyz">Tempo explorer</a>
-    <a href="https://solrouter.com">SolRouter</a>
   </div>
-  <div class="fine">Router Labs · built on MPP + Tempo + Phala Intel TDX<span class="period">.</span></div>
+  <div class="meta">Router Labs · MPP + Tempo + Phala Intel TDX</div>
 </div></footer>
 </body>
 </html>
