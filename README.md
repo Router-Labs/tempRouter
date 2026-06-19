@@ -125,4 +125,12 @@ decrypt to plaintext answer.`
 - ✅ SDK · CLI · MCP · agent skill shipped (see **Integrate** above), all verified end-to-end on testnet.
 
 See [`DESIGN.md`](DESIGN.md) for the locked design + 4-day plan, [`CONTEXT.md`](CONTEXT.md)
-for the domain glossary, and `docs/adr/` for the load-bearing decisions.
+for the domain glossary, `docs/adr/` for the load-bearing decisions, and
+[`docs/DISCOVERY.md`](docs/DISCOVERY.md) for how to list tempRouter on MPP catalogs.
+
+## TODO
+
+- [ ] **List on MPPScan** — register at https://www.mppscan.com/register (instant, ~2 min)
+- [ ] **List on mpp.dev/services** — open PR to `quiknode-labs/mpp-dev-official-docs` (see `docs/DISCOVERY.md`)
+- [ ] **Add GitHub topics** — `mpp`, `ai-inference`, `tee`, `intel-tdx`, `privacy`, `stablecoins`, `agents`
+- [ ] **Hackathon submission** — submit repo + live link to Futura Camp Berlin judges
