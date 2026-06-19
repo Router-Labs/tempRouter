@@ -66,7 +66,7 @@ app.get('/', (c) => {
     network: { chainId: tempoChain.chainId, currency: tempoChain.currencyName, explorer: tempoChain.explorer },
     privacy: 'prompt is E2E-encrypted to a real Phala Intel TDX enclave; this relay is blind',
     endpoints: {
-      'POST /v1/chat/completions/stream': `session, ${config.pricePerUnit} pathUSD/response-chunk (SSE)`,
+      'POST /v1/chat/completions/stream': `session, ${config.pricePerUnit} ${tempoChain.currencyName}/response-chunk (SSE)`,
       'GET /tee/attestation': 'enclave attestation (verify before you pay)',
       'GET /openapi.json': 'MPP service discovery',
       'GET /llms.txt': 'agent-readable context',
@@ -151,8 +151,8 @@ app.get('/openapi.json', (c) => {
   const amountRaw = String(Math.round(Number(config.pricePerUnit) * 10 ** tempoChain.decimals))
   return c.json({
     openapi: '3.1.0',
-    info: { title: 'tempRouter', version: '0.1.0', description: 'Attestation-gated private AI inference, paid per response-chunk in pathUSD on Tempo.' },
-    servers: [{ url: 'https://temprouter.onrender.com', description: 'Production' }],
+    info: { title: 'tempRouter', version: '0.1.0', description: `Attestation-gated private AI inference, paid per response-chunk in ${tempoChain.currencyName} on Tempo.` },
+    servers: [{ url: c.req.url.replace(/\/openapi\.json$/, ''), description: 'Current origin' }],
     'x-service-info': {
       categories: ['ai', 'inference', 'privacy'],
       docs: { homepage: 'https://github.com/Router-Labs/tempRouter', llms: '/llms.txt' },

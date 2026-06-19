@@ -73,7 +73,6 @@ export const isMainnet = process.env.NETWORK === 'mainnet'
 export const tempoChain = isMainnet ? tempoMainnet : tempoTestnet
 
 // Derived: where to fetch the enclave attestation + public key (blind passthrough).
-// Derived: where to fetch the enclave attestation + public key (blind passthrough).
 export const teeAttestationUrl = config.teeEndpoint ? `${config.teeEndpoint}/attestation` : ''
 export const teePublicKeyUrl = config.teeEndpoint ? `${config.teeEndpoint}/public-key` : ''
 
