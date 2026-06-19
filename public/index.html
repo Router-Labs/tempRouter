@@ -36,6 +36,7 @@
     --text:#e5e5e5; --text-strong:#fff; --muted:#999; --faint:#666; --subtle:#444;
     --accent:#00ff88; --accent-dim:#00cc6a;
     --purple:#a78bfa; --purple-dim:#7c6cf0;
+    --red-dim:#ff5f57;
     --border:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.16);
     --mono:"SF Mono",ui-monospace,"Cascadia Code","Fira Code",monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
@@ -46,6 +47,47 @@
   a{color:var(--accent);text-decoration:none;transition:opacity .15s}
   a:hover{opacity:.8}
   .wrap{max-width:920px;margin:0 auto;padding:0 24px}
+
+  /* ── Animations ── */
+  @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes glowPulse{0%,100%{box-shadow:0 0 12px rgba(0,255,136,.25),0 4px 16px rgba(0,255,136,.1)}50%{box-shadow:0 0 24px rgba(0,255,136,.45),0 4px 20px rgba(0,255,136,.2)}}
+  @keyframes heroGlow{0%,100%{opacity:.4;transform:translateX(-50%) scale(1)}50%{opacity:.65;transform:translateX(-50%) scale(1.08)}}
+  @keyframes lineReveal{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
+
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease-out,transform .6s ease-out}
+  .reveal.visible{opacity:1;transform:translateY(0)}
+
+  /* Hero animations */
+  .hero-anim-h1{animation:fadeInUp .7s ease-out .1s both}
+  .hero-anim-tag{animation:fadeInUp .7s ease-out .35s both}
+  .hero-anim-cta{animation:fadeInUp .7s ease-out .55s both}
+  .hero-anim-term{animation:fadeIn .8s ease-out .7s both}
+
+  /* Terminal line stagger */
+  .terminal-body > *{animation:lineReveal .35s ease-out both}
+  .terminal-body > *:nth-child(1){animation-delay:.9s}
+  .terminal-body > *:nth-child(2){animation-delay:1.0s}
+  .terminal-body > *:nth-child(3){animation-delay:1.1s}
+  .terminal-body > *:nth-child(4){animation-delay:1.2s}
+  .terminal-body > *:nth-child(5){animation-delay:1.3s}
+  .terminal-body > *:nth-child(6){animation-delay:1.4s}
+  .terminal-body > *:nth-child(7){animation-delay:1.5s}
+  .terminal-body > *:nth-child(8){animation-delay:1.6s}
+  .terminal-body > *:nth-child(9){animation-delay:1.7s}
+  .terminal-body > *:nth-child(10){animation-delay:1.8s}
+  .terminal-body > *:nth-child(11){animation-delay:1.9s}
+  .terminal-body > *:nth-child(12){animation-delay:2.0s}
+  .terminal-body > *:nth-child(13){animation-delay:2.1s}
+  .terminal-body > *:nth-child(14){animation-delay:2.2s}
+  .terminal-body > *:nth-child(15){animation-delay:2.3s}
+
+  /* CTA glow */
+  .btn-primary{animation:glowPulse 3.5s ease-in-out infinite}
+
+  /* Hero background glow */
+  .hero-bg{position:absolute;top:0;left:50%;width:600px;height:400px;transform:translateX(-50%);background:radial-gradient(ellipse at center,rgba(0,255,136,.10) 0%,rgba(0,255,136,.04) 35%,transparent 70%);pointer-events:none;animation:heroGlow 6s ease-in-out infinite;z-index:0}
+  .hero .wrap{position:relative;z-index:1}
 
   /* Header */
   header{position:sticky;top:0;background:rgba(10,10,10,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);z-index:20}
@@ -59,7 +101,7 @@
   .status .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
 
   /* Hero */
-  .hero{padding:100px 0 72px;text-align:center}
+  .hero{padding:100px 0 72px;text-align:center;position:relative;overflow:hidden}
   .hero h1{font-size:clamp(40px,7vw,80px);font-weight:800;line-height:1.05;letter-spacing:-.03em;color:var(--text-strong);margin-bottom:20px}
   .hero h1 .green{color:var(--accent)}
   .hero .tagline{font-size:clamp(16px,2vw,20px);color:var(--muted);max-width:560px;margin:0 auto 32px}
@@ -102,6 +144,26 @@
   .feature p{font-size:14px;color:var(--muted);line-height:1.5}
   .feature code{font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(0,255,136,.06);padding:1px 5px;border-radius:3px}
 
+  /* Use Cases */
+  .use-cases{padding:72px 0;border-top:1px solid var(--border)}
+  .use-cases h2{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;text-align:center;margin-bottom:8px}
+  .use-cases h2 .green{color:var(--accent)}
+  .use-cases .subtitle{text-align:center;color:var(--muted);font-size:15px;margin-bottom:48px}
+  .uc-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .uc-card{padding:28px;border:1px solid var(--border);border-radius:14px;background:var(--bg-raised)}
+  .uc-card.use{border-color:rgba(0,255,136,.15)}
+  .uc-card.dont{border-color:rgba(255,95,87,.12)}
+  .uc-card h3{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .uc-card.use h3{color:var(--accent)}
+  .uc-card.dont h3{color:var(--red-dim)}
+  .uc-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .uc-list li{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--muted);line-height:1.5}
+  .uc-list li .check{color:var(--accent);flex-shrink:0;font-weight:700;margin-top:1px}
+  .uc-list li .xmark{color:var(--red-dim);flex-shrink:0;font-weight:700;margin-top:1px}
+  .uc-list li b{color:var(--text);font-weight:500}
+  .uc-note{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:13px;color:var(--faint);line-height:1.5}
+  .uc-note code{font-family:var(--mono);font-size:12px;color:var(--purple);background:rgba(167,139,250,.08);padding:1px 5px;border-radius:3px}
+
   /* Integrate */
   .integrate{padding:72px 0;border-top:1px solid var(--border)}
   .integrate h2{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;text-align:center;margin-bottom:16px}
@@ -117,6 +179,14 @@
   .code-block .string{color:var(--accent)}
   .code-block .fn{color:#e5e5e5}
 
+  /* Backed by */
+  .backed-by{padding:48px 0;border-top:1px solid var(--border)}
+  .backed-by h3{text-align:center;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.1em;text-transform:uppercase;margin-bottom:24px}
+  .backed-grid{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:32px}
+  .backed-item{font-family:var(--mono);font-size:14px;color:var(--muted);display:flex;align-items:center;gap:6px;transition:color .15s}
+  .backed-item:hover{color:var(--text-strong)}
+  .backed-item .dot{width:4px;height:4px;border-radius:50%;background:var(--accent);opacity:.6}
+
   /* Footer */
   footer{padding:48px 0 32px;border-top:1px solid var(--border)}
   footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
@@ -124,14 +194,25 @@
   footer .links a{font-family:var(--mono);font-size:12px;color:var(--muted)}
   footer .meta{font-family:var(--mono);font-size:11px;color:var(--faint)}
 
+  /* Mobile */
   @media(max-width:640px){
     .hero{padding:60px 0 48px}
-    .features,.integrate{padding:48px 0}
+    .features,.use-cases,.integrate{padding:48px 0}
     nav .hide-sm{display:none}
+    .uc-grid{grid-template-columns:1fr}
+    .backed-grid{gap:20px}
+    .terminal-body{font-size:12px}
+    .hero-bg{width:400px;height:300px}
   }
+  @media(max-width:420px){
+    .backed-grid{flex-direction:column;gap:12px}
+  }
+
+  /* Reduced motion */
   @media(prefers-reduced-motion:reduce){
     html{scroll-behavior:auto}
-    *{transition:none!important;animation:none!important}
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .reveal{opacity:1!important;transform:none!important}
   }
 </style>
 </head>
@@ -140,6 +221,7 @@
   <div class="logo">temp<span>Router</span></div>
   <nav>
     <a href="#how" class="hide-sm">How it works</a>
+    <a href="#use-cases" class="hide-sm">Use cases</a>
     <a href="#integrate" class="hide-sm">Integrate</a>
     <a href="https://github.com/Router-Labs/tempRouter">GitHub</a>
     <span class="status"><span class="dot"></span>live · TDX</span>
@@ -148,10 +230,10 @@
 
 <main>
 
-<div class="hero"><div class="wrap">
-  <h1>Pay an LLM only after<br/>you <span class="green">prove</span> it never<br/>saw your prompt.</h1>
-  <p class="tagline">An <b>MPP-payable inference endpoint</b>. Your agent verifies a real <b>Intel TDX enclave</b> with DCAP — then pays per response-chunk in stablecoin on Tempo. End-to-end encrypted. The relay is blind.</p>
-  <div class="hero-cta">
+<div class="hero"><div class="hero-bg"></div><div class="wrap">
+  <h1 class="hero-anim-h1">Pay an LLM only after<br/>you <span class="green">prove</span> it never<br/>saw your prompt.</h1>
+  <p class="tagline hero-anim-tag">An <b>MPP-payable inference endpoint</b>. Your agent verifies a real <b>Intel TDX enclave</b> with DCAP — then pays per response-chunk in stablecoin on Tempo. End-to-end encrypted. The relay is blind.</p>
+  <div class="hero-cta hero-anim-cta">
     <a class="btn btn-primary" href="/SKILL.md">Agent skill →</a>
     <a class="btn btn-ghost" href="/openapi.json">/openapi.json</a>
     <a class="btn btn-ghost" href="https://github.com/Router-Labs/tempRouter">GitHub</a>
@@ -159,65 +241,65 @@
 </div></div>
 
 <div class="terminal-section"><div class="wrap">
-  <div class="terminal">
+  <div class="terminal hero-anim-term">
     <div class="terminal-head">
       <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
       <span class="title">agent — temprouter infer</span>
     </div>
     <div class="terminal-body">
-<span class="comment"># your agent detects a secret in the prompt → forces the private lane</span>
-<span class="prompt">$</span> <span class="cmd">temprouter</span> <span class="flag">infer</span> <span class="str">"rotate leaked key sk-proj-…uvwx"</span>
-
-<span class="warn">🔒</span> <span class="dim">sensitive payload detected (openai-key) → forcing attested private lane</span>
-
-<span class="comment">── pre-pay attestation gate ──</span>
-<span class="ok">✅</span> <span class="dim">real TDX enclave advertised</span> <span class="dim">(INTEL-TDX-PHALA)</span>
-<span class="ok">✅</span> <span class="dim">DCAP quote authentic</span> <span class="dim">(Intel-signed, TCB UpToDate)</span>
-<span class="ok">✅</span> <span class="dim">measurement verified</span> <span class="dim">(mrtd=f06d…)</span>
-<span class="ok">✅✅ independently verified — genuine TDX, bound keys</span>
-
-<span class="comment">── encrypt → pay → stream ──</span>
-<span class="prompt">$</span> <span class="dim">encrypt prompt → enclave key (Arcium + X25519)</span>
-<span class="prompt">$</span> <span class="dim">pay per response-chunk via MPP session on Tempo</span>
-  <span class="pay">💸 0.0002 USDC · 1 chunk · session settled on-chain</span>
-
-<span class="comment">── decrypt locally ──</span>
-<span class="ok">🔓</span> <span class="dim">plaintext seen only by you + the attested enclave</span>
-<span class="dim">→ "Rotate immediately: revoke in dashboard → generate new key</span>
-<span class="dim">   → update secrets store → redeploy → audit logs…"</span>
+<div class="comment"># your agent detects a secret in the prompt → forces the private lane</div>
+<div><span class="prompt">$</span> <span class="cmd">temprouter</span> <span class="flag">infer</span> <span class="str">"rotate leaked key sk-proj-…uvwx"</span></div>
+<div>&nbsp;</div>
+<div><span class="warn">🔒</span> <span class="dim">sensitive payload detected (openai-key) → forcing attested private lane</span></div>
+<div>&nbsp;</div>
+<div class="comment">── pre-pay attestation gate ──</div>
+<div><span class="ok">✅</span> <span class="dim">real TDX enclave advertised</span> <span class="dim">(INTEL-TDX-PHALA)</span></div>
+<div><span class="ok">✅</span> <span class="dim">DCAP quote authentic</span> <span class="dim">(Intel-signed, TCB UpToDate)</span></div>
+<div><span class="ok">✅</span> <span class="dim">measurement verified</span> <span class="dim">(mrtd=f06d…)</span></div>
+<div><span class="ok">✅✅ independently verified — genuine TDX, bound keys</span></div>
+<div>&nbsp;</div>
+<div class="comment">── encrypt → pay → stream ──</div>
+<div><span class="prompt">$</span> <span class="dim">encrypt prompt → enclave key (Arcium + X25519)</span></div>
+<div><span class="prompt">$</span> <span class="dim">pay per response-chunk via MPP session on Tempo</span></div>
+<div>&nbsp;&nbsp;<span class="pay">💸 0.0002 USDC · 1 chunk · session settled on-chain</span></div>
+<div>&nbsp;</div>
+<div class="comment">── decrypt locally ──</div>
+<div><span class="ok">🔓</span> <span class="dim">plaintext seen only by you + the attested enclave</span></div>
+<div class="dim">→ "Rotate immediately: revoke in dashboard → generate new key</div>
+<div class="dim">&nbsp;&nbsp; → update secrets store → redeploy → audit logs…"</div>
     </div>
   </div>
 </div></div>
 
 <div class="features" id="how"><div class="wrap">
-  <h2>Payment was the <span class="green">easy</span> half.</h2>
+  <h2 class="reveal">Payment was the <span class="green">easy</span> half.</h2>
   <div class="feature-grid">
-    <div class="feature">
+    <div class="feature reveal">
       <div class="icon">🔍</div>
       <h3>Verify before you pay</h3>
       <p>Your agent runs Intel DCAP on the live enclave quote <b>before</b> signing any voucher. Fail → sign zero vouchers. The enclave can't decrypt the prompt anyway.</p>
     </div>
-    <div class="feature">
+    <div class="feature reveal">
       <div class="icon">🔐</div>
       <h3>Blind relay</h3>
       <p>The prompt is E2E-encrypted to a key that only exists inside the enclave. tempRouter holds no key — it forwards ciphertext and meters the reply.</p>
     </div>
-    <div class="feature">
+    <div class="feature reveal">
       <div class="icon">💸</div>
       <h3>Per-chunk MPP metering</h3>
       <p>Native <code>session</code> over SSE: pay per response-chunk in stablecoin, settled in ~2 on-chain txs via Tempo. No API keys, no subscriptions.</p>
     </div>
-    <div class="feature">
+    <div class="feature reveal">
       <div class="icon">🧠</div>
       <h3>Client-side secret policy</h3>
       <p>Your agent detects API keys, private keys, JWTs and PII locally — and forces the private lane. The relay can't classify what it can't read.</p>
     </div>
-    <div class="feature">
+    <div class="feature reveal">
       <div class="icon">📜</div>
       <h3>Full transparency</h3>
       <p>Every check is auditable on the wire: DCAP cert chain, key binding, enclave ed25519 signature, quote digest. Nothing taken on trust.</p>
     </div>
-    <div class="feature">
+    <div class="feature reveal">
       <div class="icon">🔌</div>
       <h3>Discoverable + payable</h3>
       <p>OpenAPI + <code>llms.txt</code> + agent skill. Any MPP-speaking agent can discover and pay the endpoint — no human in the loop.</p>
@@ -225,16 +307,47 @@
   </div>
 </div></div>
 
-<div class="integrate" id="integrate"><div class="wrap">
-  <h2>Drop it into your agent.</h2>
-  <p class="center">Infrastructure, not a destination. Four surfaces, same verify-before-pay lane.</p>
-  <div class="surfaces">
-    <div class="surface"><div class="label">SDK</div><h3>@temprouter/sdk</h3><p>One <code>client.infer()</code> call</p></div>
-    <div class="surface"><div class="label">CLI</div><h3>temprouter</h3><p><code>temprouter infer "…"</code></p></div>
-    <div class="surface"><div class="label">MCP</div><h3>stdio server</h3><p>Tools for Claude, etc.</p></div>
-    <div class="surface"><div class="label">Skill</div><h3>agent skill</h3><p><code>npx skills add …</code></p></div>
+<div class="use-cases" id="use-cases"><div class="wrap">
+  <h2 class="reveal">When you <span class="green">need it</span>.<br/>When you <span style="color:var(--red-dim)">don't</span>.</h2>
+  <p class="subtitle reveal">The private lane is for secrets. Not for everything.</p>
+  <div class="uc-grid">
+    <div class="uc-card use reveal">
+      <h3>✅ Use tempRouter when:</h3>
+      <ul class="uc-list">
+        <li><span class="check">✓</span> <span>Prompt contains <b>API keys</b> (<code style="font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(0,255,136,.06);padding:1px 5px;border-radius:3px">sk-…</code>)</span></li>
+        <li><span class="check">✓</span> <span>Includes <b>private keys</b> (<code style="font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(0,255,136,.06);padding:1px 5px;border-radius:3px">0x…</code>), seed phrases, or wallets</span></li>
+        <li><span class="check">✓</span> <span>Holds <b>JWTs, session tokens</b>, or passwords</span></li>
+        <li><span class="check">✓</span> <span>Contains <b>PII / customer data</b> — names, emails, SSNs, addresses</span></li>
+        <li><span class="check">✓</span> <span><b>Proprietary code</b> or business logic you don't want leaking</span></li>
+        <li><span class="check">✓</span> <span><b>Legal, medical, or financial</b> records (GDPR / HIPAA / SOC2)</span></li>
+      </ul>
+    </div>
+    <div class="uc-card dont reveal">
+      <h3>✗ Don't use tempRouter when:</h3>
+      <ul class="uc-list">
+        <li><span class="xmark">✗</span> <span><b>General questions</b> — "how does X work?"</span></li>
+        <li><span class="xmark">✗</span> <span><b>Creative writing</b> — stories, poems, brainstorming</span></li>
+        <li><span class="xmark">✗</span> <span><b>Casual chat</b> or open-ended conversation</span></li>
+        <li><span class="xmark">✗</span> <span><b>Non-sensitive coding help</b> — public APIs, tutorials</span></li>
+        <li><span class="xmark">✗</span> <span><b>Public research</b> — lookups, summaries of open info</span></li>
+      </ul>
+      <div class="uc-note">
+        The private lane runs an <b style="color:var(--text)">OSS model</b> (<code>gpt-oss:20b</code>) — it's the <b style="color:var(--text)">confidential lane</b>, not a frontier-model replacement. Use it for privacy, not for peak IQ.
+      </div>
+    </div>
   </div>
-  <div class="code-block">
+</div></div>
+
+<div class="integrate" id="integrate"><div class="wrap">
+  <h2 class="reveal">Drop it into your agent.</h2>
+  <p class="center reveal">Infrastructure, not a destination. Four surfaces, same verify-before-pay lane.</p>
+  <div class="surfaces">
+    <div class="surface reveal"><div class="label">SDK</div><h3>@temprouter/sdk</h3><p>One <code>client.infer()</code> call</p></div>
+    <div class="surface reveal"><div class="label">CLI</div><h3>temprouter</h3><p><code>temprouter infer "…"</code></p></div>
+    <div class="surface reveal"><div class="label">MCP</div><h3>stdio server</h3><p>Tools for Claude, etc.</p></div>
+    <div class="surface reveal"><div class="label">Skill</div><h3>agent skill</h3><p><code>npx skills add …</code></p></div>
+  </div>
+  <div class="code-block reveal">
 <span class="comment">// @temprouter/sdk — the whole lane in one call</span>
 <span class="keyword">import</span> { <span class="fn">TempRouter</span>, <span class="fn">detectSensitive</span> } <span class="keyword">from</span> <span class="string">'@temprouter/sdk'</span>
 
@@ -242,6 +355,16 @@
 <span class="keyword">if</span> (<span class="fn">detectSensitive</span>(prompt).sensitive) {
   <span class="keyword">const</span> { answer, paid } = <span class="keyword">await</span> client.<span class="fn">infer</span>(prompt) <span class="comment">// verify → encrypt → pay → decrypt</span>
 }
+  </div>
+</div></div>
+
+<div class="backed-by"><div class="wrap">
+  <h3>Backed by</h3>
+  <div class="backed-grid">
+    <div class="backed-item"><span class="dot"></span> MPP</div>
+    <div class="backed-item"><span class="dot"></span> Tempo</div>
+    <div class="backed-item"><span class="dot"></span> Phala Intel TDX</div>
+    <div class="backed-item"><span class="dot"></span> Router Labs</div>
   </div>
 </div></div>
 
@@ -257,5 +380,25 @@
   </div>
   <div class="meta">Router Labs · MPP + Tempo + Phala Intel TDX</div>
 </div></footer>
+
+<script>
+  // IntersectionObserver for scroll-triggered reveals
+  (function(){
+    var els = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      els.forEach(function(el){ el.classList.add('visible'); });
+      return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    els.forEach(function(el){ io.observe(el); });
+  })();
+</script>
 </body>
 </html>
