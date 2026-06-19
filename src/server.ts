@@ -152,6 +152,7 @@ app.get('/openapi.json', (c) => {
   return c.json({
     openapi: '3.1.0',
     info: { title: 'tempRouter', version: '0.1.0', description: 'Attestation-gated private AI inference, paid per response-chunk in pathUSD on Tempo.' },
+    servers: [{ url: 'https://temprouter.onrender.com', description: 'Production' }],
     'x-service-info': {
       categories: ['ai', 'inference', 'privacy'],
       docs: { homepage: 'https://github.com/Router-Labs/tempRouter', llms: '/llms.txt' },
@@ -163,7 +164,10 @@ app.get('/openapi.json', (c) => {
           'x-payment-info': {
             offers: [{ amount: amountRaw, currency: tempoChain.currency, intent: 'session', method: 'tempo' }],
           },
-          responses: { '200': { description: 'OK (SSE stream)' }, '402': { description: 'Payment Required' } },
+          responses: {
+            '200': { description: 'OK (SSE stream of decrypted response chunks)', content: { 'text/event-stream': {} } },
+            '402': { description: 'Payment Required — MPP Tempo session challenge', content: { 'application/problem+json': {} } },
+          },
         },
       },
     },

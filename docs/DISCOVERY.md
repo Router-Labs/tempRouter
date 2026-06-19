@@ -1,7 +1,11 @@
 # Making tempRouter Discoverable
 
-tempRouter is live and production-ready. This guide covers how to list it on the
-two MPP catalogs so agents and developers can find it.
+tempRouter is live and production-ready. This guide covers how to list it on
+MPP/x402 catalogs so agents and developers can find it.
+
+Based on the [AgentCash merchant guide](https://agentcash.dev/merchants.md) —
+tempRouter classifies as **Branch E: Discovery + Registration Hardening** (already
+has MPP, focus on discovery and registration).
 
 ---
 
@@ -119,3 +123,32 @@ make it easier to *find*.
 - **Hackathon submission** — submit repo + live link to Futura Camp Berlin judges
 - **MPP Discord/Telegram** — share in the community channels
 - **GitHub topics** — add topics to the repo: `mpp`, `ai-inference`, `tee`, `intel-tdx`, `privacy`, `stablecoins`, `agents`
+
+---
+
+## Optional: Add x402 support (Branch D — expand MPP → both)
+
+tempRouter currently only supports MPP. Adding [x402](https://docs.x402.org/) would
+make it discoverable by a second ecosystem of agents (Coinbase-originated, Linux Foundation).
+
+This requires:
+- Installing `@agentcash/router` or native x402 SDK
+- Adding x402 payment metadata to the OpenAPI spec
+- Two new EVM wallets (operator + fee-payer)
+- Code changes to the server
+
+**Decision needed** — not automated. Evaluate after hackathon based on traction.
+
+## Discovery validation
+
+Validate with:
+```bash
+npx @agentcash/discovery check https://temprouter.onrender.com
+```
+
+Current status:
+- ✅ OpenAPI 3.1.0 with `servers`, `x-payment-info`, `x-service-info`
+- ✅ Live 402 challenge (MPP Tempo session)
+- ✅ `/llms.txt`, `/SKILL.md`, `/robots.txt`, `/.well-known/*` aliases
+- ✅ Favicon (inline SVG)
+- ⚠️ `@agentcash/discovery` validator expects x402 format — MPP-only services won't fully validate
