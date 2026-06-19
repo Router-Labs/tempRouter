@@ -164,6 +164,20 @@
   .uc-list li b{color:var(--text);font-weight:500}
   .uc-note{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:13px;color:var(--faint);line-height:1.5}
   .uc-note code{font-family:var(--mono);font-size:12px;color:var(--purple);background:rgba(167,139,250,.08);padding:1px 5px;border-radius:3px}
+  /* Verified examples */
+  .examples{padding:72px 0;border-top:1px solid var(--border)}
+  .examples h2{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;text-align:center;margin-bottom:8px}
+  .examples h2 .green{color:var(--accent)}
+  .examples .subtitle{text-align:center;color:var(--muted);font-size:15px;margin-bottom:48px}
+  .ex-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+  .ex-card{padding:24px;border:1px solid var(--border);border-radius:12px;background:var(--bg-raised)}
+  .ex-card .trigger{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--accent);background:rgba(0,255,136,.06);padding:3px 8px;border-radius:4px;margin-bottom:12px}
+  .ex-card h3{font-size:15px;font-weight:600;color:var(--text-strong);margin-bottom:8px}
+  .ex-card p{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:14px}
+  .ex-card .tx{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--faint);padding-top:12px;border-top:1px solid var(--border)}
+  .ex-card .tx a{color:var(--accent);text-decoration:none;word-break:break-all}
+  .ex-card .tx a:hover{opacity:.7}
+  .ex-card .badge{font-size:10px;color:var(--accent);font-family:var(--mono)}
 
   /* Integrate */
   .integrate{padding:72px 0;border-top:1px solid var(--border)}
@@ -335,6 +349,31 @@
       <div class="uc-note">
         The private lane runs an <b style="color:var(--text)">OSS model</b> (<code>gpt-oss:20b</code>) — it's the <b style="color:var(--text)">confidential lane</b>, not a frontier-model replacement. Use it for privacy, not for peak IQ.
       </div>
+    </div>
+  </div>
+</div></div>
+
+<div class="examples" id="examples"><div class="wrap">
+  <h2 class="reveal">Verified <span class="green">on-chain</span>.</h2>
+  <p class="subtitle reveal">Real testnet runs. Each prompt was detected, forced the private lane, verified the enclave, paid in pathUSD — all on Tempo Moderato.</p>
+  <div class="ex-grid">
+    <div class="ex-card reveal">
+      <span class="trigger">🔒 detected: openai-key</span>
+      <h3>Leaked credential → incident response</h3>
+      <p>"Our log shipper exposed this production key: <code style="font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(0,255,136,.06);padding:1px 5px;border-radius:3px">sk-pro…3Tg8</code>. Give me the blast radius and rotation runbook."</p>
+      <div class="tx">💸 0.0002 pathUSD · <a href="https://explore.testnet.tempo.xyz/tx/0x20445870f014e13c4a45a1989458715b21ace51d4d3ae13f2ef3b87ba2b57d75" target="_blank" rel="noopener">view tx →</a></div>
+    </div>
+    <div class="ex-card reveal">
+      <span class="trigger">🔒 detected: email / PII</span>
+      <h3>Support ticket with PII → safe triage</h3>
+      <p>"Ticket from <code style="font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(0,255,136,.06);padding:1px 5px;border-radius:3px">jane.doe@acme-customer.com</code> (phone 555-0142): double-charged, wants refund. Draft GDPR-safe reply."</p>
+      <div class="tx">💸 0.0002 pathUSD · <a href="https://explore.testnet.tempo.xyz/tx/0xbd6361eff04c780c348aa9925ec644f28c8e65ba5fc3e84f970ef521a40be24f" target="_blank" rel="noopener">view tx →</a></div>
+    </div>
+    <div class="ex-card reveal">
+      <span class="trigger">🔒 detected: hex-private-key</span>
+      <h3>Wallet key exposure → security review</h3>
+      <p>"This hot-wallet key may be compromised: <code style="font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(0,255,136,.06);padding:1px 5px;border-radius:3px">0xa1b2c3d4…</code>. Assess exposure and give migration steps."</p>
+      <div class="tx">💸 0.0002 pathUSD · <a href="https://explore.testnet.tempo.xyz/tx/0x23d1cabe4dfb85956fcc050d3533d3be1fa2a70850723c2a5bf7217ef8b7dee2" target="_blank" rel="noopener">view tx →</a></div>
     </div>
   </div>
 </div></div>

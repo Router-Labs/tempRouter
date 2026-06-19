@@ -195,3 +195,18 @@ _Scope: Tempo Moderato **testnet**, pathUSD, OSS model (`gpt-oss:20b`) in the en
 Verification covers DCAP cert-chain + key binding + enclave ed25519 signature; code-measurement
 pinning is opt-in (soft-pin by default). The enclave key is attached to the MPP session as a
 settlement **label**, not an enforced gate — see `docs/adr/0002`. Captured 2026-06-18._
+
+---
+
+## Use-case verification runs (2026-06-19)
+
+Three real testnet runs, each tripping a different detector category. All passed pre-pay DCAP
+verification, paid 0.0002 pathUSD per chunk, and decrypted successfully.
+
+| # | Detector | Prompt type | TX hash |
+|---|---|---|---|
+| 1 | `openai-key, high-entropy-token` | Leaked credential → incident response | [`0x2044…57d75`](https://explore.testnet.tempo.xyz/tx/0x20445870f014e13c4a45a1989458715b21ace51d4d3ae13f2ef3b87ba2b57d75) |
+| 2 | `email` | Support ticket with PII → GDPR-safe triage | [`0xbd63…e24f`](https://explore.testnet.tempo.xyz/tx/0xbd6361eff04c780c348aa9925ec644f28c8e65ba5fc3e84f970ef521a40be24f) |
+| 3 | `hex-private-key` | Wallet key exposure → security review | [`0x23d1…dee2`](https://explore.testnet.tempo.xyz/tx/0x23d1cabe4dfb85956fcc050d3533d3be1fa2a70850723c2a5bf7217ef8b7dee2) |
+
+All three: 1 unit · 0.0002 pathUSD · total 0.0006 pathUSD on Tempo Moderato testnet.
