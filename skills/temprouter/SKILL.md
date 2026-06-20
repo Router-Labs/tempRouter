@@ -10,6 +10,35 @@ description: Call tempRouter — a payable, end-to-end-encrypted LLM inference e
 - `GET /tee/attestation` — enclave attestation (verify before you pay)
 - `GET /openapi.json` · `GET /llms.txt` — MPP service discovery
 
+## Quick start
+
+Three fastest ways to try tempRouter right now:
+
+### 1. Verify-only (free, no payment)
+```bash
+temprouter verify
+# or: curl https://temprouter.onrender.com/tee/attestation | jq
+```
+Fetches the live enclave attestation report and runs DCAP verification. Costs nothing —
+just confirms the enclave is real. Good for kicking the tires.
+
+### 2. Single inference (end-to-end)
+```bash
+temprouter infer "sanitize this key before rotation: sk-proj-abc123"
+```
+Runs the full lane: detect → verify → encrypt → pay → stream → decrypt. Requires a
+funded Tempo testnet wallet (`account` env var or `--account` flag).
+
+### 3. Detect sensitivity (client-side, no network)
+```bash
+temprouter detect "my password is hunter2 and my key is 0xdeadbeef"
+# → { sensitive: true, matched: ["password", "private-key"] }
+```
+Pure local check — classifies whether a prompt needs the private lane. Zero network,
+zero cost. Use as a pre-filter in your agent pipeline.
+
+---
+
 ## What it is
 A **payable inference endpoint on MPP**: your agent pays per response-chunk in **pathUSD**
 on Tempo for an LLM answer that is **end-to-end encrypted** to a real **Phala Intel TDX
@@ -56,6 +85,57 @@ temprouter detect "<text>"                   # is it sensitive?
 - `private_inference({ prompt, model? })` → decrypted answer + attestation verdict + units paid
 - `verify_enclave()` → pre-pay attestation report (free, never pays)
 - `detect_sensitive(text)` → classify whether the text needs the private lane
+
+## Rate & cost expectations
+
+This is a **testnet** service. Payments settle in **pathUSD**, a Tempo testnet token — **free
+test funds, no real money**. There is **no subscription, no API-key fee, no minimum**.
+
+| Environment | Cost | Notes |
+|---|---|---|
+| **Tempo Moderato testnet** (chain `42431`) | **Free** — pathUSD test funds | `PRICE_PER_UNIT` default `0.0002` pathUSD per chunk; prod bills **one charge per inference** (`CHUNK_COUNT=1`). |
+| **Mainnet** | **Not enabled yet** (future) | No mainnet deployment exists today. Real-currency pricing would be decided when/if mainnet ships — do not assume a number. |
+
+- You pay per chunk via an MPP **session** (SSE stream), settled in ~2 on-chain transactions.
+- The `units` field in the response tells you exactly how many chunks were charged.
+- Get test pathUSD from the Tempo testnet faucet (https://explore.testnet.tempo.xyz).
+
+## Common errors & troubleshooting
+
+### `AttestationError: DCAP verification failed`
+The enclave quote didn't pass Intel DCAP verification. This means either:
+- The enclave is not genuine (unlikely on the hosted endpoint)
+- The TCB (Trusted Computing Base) is outdated — the enclave needs a vendor update
+- You're connecting to a spoofed endpoint
+
+**Action:** Do not pay. The SDK refuses to sign vouchers automatically. If this persists,
+check `temprouter verify` output for the specific failure (cert chain, TCB level, or
+measurement mismatch).
+
+### `InsufficientBalance`
+Your Tempo testnet wallet doesn't have enough pathUSD to cover the first chunk voucher.
+
+**Action:** Request test pathUSD from the Tempo testnet faucet (https://explore.testnet.tempo.xyz),
+then retry.
+
+### `EnclaveMismatch: measurement mismatch`
+The enclave's measured `mrtd` doesn't match `EXPECTED_MEASUREMENT` in your config. This is
+expected if the enclave was recently updated/redeployed.
+- If you pinned `EXPECTED_MEASUREMENT`: update it to the new value from `temprouter verify`.
+- If you didn't pin: remove the env var / config key to use soft-pin mode (the default).
+
+### Session timeout (`payment channel timeout`)
+The MPP session expired before the response completed. This can happen with very long
+responses or network latency.
+
+**Action:** Retry. The SDK creates a fresh session per call. No double-charge is possible —
+unsettled sessions cost nothing.
+
+### Key-binding failure (`key binding failed`)
+The response was encrypted to a different key than the one your client derived from the
+attestation. This indicates a potential MITM or enclave swap mid-session.
+
+**Action:** Do not trust the response. Re-run `verify` and retry. Report if persistent.
 
 ## The guarantee
 - The agent runs **Intel DCAP** on the enclave quote **before signing any voucher**.

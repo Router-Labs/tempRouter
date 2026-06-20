@@ -1,6 +1,6 @@
 # tempRouter
 
-> A payable, end-to-end-encrypted LLM inference endpoint on MPP — pay per inference in pathUSD on Tempo.
+> A payable, end-to-end-encrypted LLM inference endpoint on MPP — pay per response-chunk in pathUSD on Tempo (Moderato testnet).
 
 tempRouter is an MPP-payable endpoint for **confidential** LLM inference. An agent
 pays per response-chunk in pathUSD over an MPP session — but only after it
@@ -23,7 +23,13 @@ OSS model (gpt-oss:20b) in the enclave.
 4. Reassemble + decrypt locally.
 
 ## Payment
-- Network: Tempo Moderato testnet (chain 42431), currency pathUSD (6 decimals).
+- Network: Tempo Moderato testnet (chain 42431), currency pathUSD (6 decimals). Testnet only — not mainnet, no real money.
+- Price: 0.0002 pathUSD per response-chunk.
 - Model: MPP `tempo` session intent, unitType `response-chunk`.
 - Discovery: GET /openapi.json (x-service-info + x-payment-info).
 - Entrypoint: GET /SKILL.md — agent skill (install: `npx skills add Router-Labs/tempRouter`).
+
+## Verified runs
+Three real Tempo Moderato testnet runs (each tripping a different detector) are linked on the
+landing page (#verified): openai-key, email/PII, and hex-private-key — each settled at 0.0002 pathUSD.
+The enclave key is attached to the MPP session as a settlement label, not an enforced gate.
