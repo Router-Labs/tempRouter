@@ -88,17 +88,15 @@ temprouter detect "<text>"                   # is it sensitive?
 
 ## Rate & cost expectations
 
-This is a **testnet** service. Payments settle in **pathUSD**, a Tempo testnet token — **free
-test funds, no real money**. There is **no subscription, no API-key fee, no minimum**.
-
 | Environment | Cost | Notes |
 |---|---|---|
-| **Tempo Moderato testnet** (chain `42431`) | **Free** — pathUSD test funds | `PRICE_PER_UNIT` default `0.0002` pathUSD per chunk; prod bills **one charge per inference** (`CHUNK_COUNT=1`). |
-| **Mainnet** | **Not enabled yet** (future) | No mainnet deployment exists today. Real-currency pricing would be decided when/if mainnet ships — do not assume a number. |
+| **Tempo testnet** (chain `42431`) | **Free** | pathUSD is testnet-only; no real money. Use for dev/testing. |
+| **Mainnet** (planned) | **~0.0002 USDC per chunk** | 1 chunk ≈ 1 response segment. A typical short answer = 1–3 chunks. |
 
-- You pay per chunk via an MPP **session** (SSE stream), settled in ~2 on-chain transactions.
+- There is **no subscription, no API key fee, no minimum**. You pay per chunk via an MPP
+  session (SSE stream), settled in ~2 on-chain transactions.
 - The `units` field in the response tells you exactly how many chunks were charged.
-- Get test pathUSD from the Tempo testnet faucet (https://explore.testnet.tempo.xyz).
+- Testnet pathUSD can be obtained from the Tempo testnet faucet.
 
 ## Common errors & troubleshooting
 
@@ -112,29 +110,26 @@ The enclave quote didn't pass Intel DCAP verification. This means either:
 check `temprouter verify` output for the specific failure (cert chain, TCB level, or
 measurement mismatch).
 
-### `InsufficientBalance`
-Your Tempo testnet wallet doesn't have enough pathUSD to cover the first chunk voucher.
+### `InsufficientBalanceError`
+Your Tempo wallet doesn't have enough pathUSD to cover the first chunk voucher.
+- **Testnet:** Request funds from the Tempo testnet faucet.
+- **Mainnet:** Fund your wallet with USDC on the Tempo chain.
 
-**Action:** Request test pathUSD from the Tempo testnet faucet (https://explore.testnet.tempo.xyz),
-then retry.
-
-### `EnclaveMismatch: measurement mismatch`
-The enclave's measured `mrtd` doesn't match `EXPECTED_MEASUREMENT` in your config. This is
-expected if the enclave was recently updated/redeployed.
+### `EnclaveMismatchError: measurement mismatch`
+The enclave's measured measurement (`mrtd`) doesn't match `EXPECTED_MEASUREMENT` in your
+config. This is expected if the enclave was recently updated/redeployed.
 - If you pinned `EXPECTED_MEASUREMENT`: update it to the new value from `temprouter verify`.
-- If you didn't pin: remove the env var / config key to use soft-pin mode (the default).
+- If you didn't pin: remove the env var / config key to use soft-pin mode (default).
 
-### Session timeout (`payment channel timeout`)
+### `SessionError: payment channel timeout`
 The MPP session expired before the response completed. This can happen with very long
 responses or network latency.
-
 **Action:** Retry. The SDK creates a fresh session per call. No double-charge is possible —
 unsettled sessions cost nothing.
 
-### Key-binding failure (`key binding failed`)
+### `EncryptionError: key binding failed`
 The response was encrypted to a different key than the one your client derived from the
 attestation. This indicates a potential MITM or enclave swap mid-session.
-
 **Action:** Do not trust the response. Re-run `verify` and retry. Report if persistent.
 
 ## The guarantee

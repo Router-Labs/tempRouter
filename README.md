@@ -1,11 +1,11 @@
 # tempRouter
 
-> **Pay an LLM only after you can prove it never saw your prompt.**
-> Confidential compute behind Intel TDX, payable per response-chunk on Tempo. No API keys, no trust required. — *MPP Hackathon @ Futura Camp Berlin 2026.*
+> **Confidential compute behind Intel TDX, payable per chunk on Tempo.**
+> No API keys. No trust required. — *MPP Hackathon @ Futura Camp Berlin 2026.*
 
 [![Live](https://img.shields.io/badge/live-temprouter.onrender.com-00ff88)](https://temprouter.onrender.com)
 [![GitHub](https://img.shields.io/badge/GitHub-Router--Labs/tempRouter-181717)](https://github.com/Router-Labs/tempRouter)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue)](#license)
 
 **Live:** https://temprouter.onrender.com · [OpenAPI](https://temprouter.onrender.com/openapi.json) · [Attestation](https://temprouter.onrender.com/tee/attestation) · [Agent Skill](https://temprouter.onrender.com/SKILL.md)
 
@@ -23,6 +23,7 @@
 - [Discovery](#discovery)
 - [Project Structure](#project-structure)
 - [Status](#status)
+- [TODO](#todo)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
@@ -33,13 +34,11 @@
 
 tempRouter is a **payable confidential compute endpoint**. An agent verifies the computation runs inside a real Intel TDX enclave (Intel DCAP attestation), encrypts its payload to the enclave's hardware-bound key, pays per response-chunk via MPP on Tempo, and decrypts locally.
 
-The relay is **blind** — it forwards ciphertext, meters usage, and holds no key. A failed attestation means **zero vouchers signed** — the client never pays for untrusted hardware. One charge per inference by default.
+The relay is **blind** — it forwards ciphertext, meters usage, and holds no key. A failed attestation means **zero vouchers signed** — the client never pays for untrusted hardware.
 
-**Why it exists:** SolRouter runs private AI inference inside Intel TDX enclaves on Solana, gated by API keys. tempRouter removes the API-key friction entirely — making it pay-per-use on Tempo via MPP. No accounts, no provisioning, just pay per chunk in stablecoin.
+**Why it exists:** SolRouter runs private AI inference inside Intel TDX enclaves on Solana, gated by API keys. tempRouter removes the API key friction entirely — making it pay-per-use on Tempo via MPP. No accounts, no provisioning, just pay per chunk in stablecoin.
 
 Not limited to prompts — any sensitive computation that needs verifiable confidentiality: transactions, cryptographic operations, financial data processing.
-
-> **Testnet build.** tempRouter runs on **Tempo Moderato testnet** (chain `42431`), currency **pathUSD** (test funds, no real money). It is a *verified testnet* deployment — see [Status](#status).
 
 ## How It Works
 
@@ -68,8 +67,6 @@ agent  ── reassemble chunks → decrypt() locally.  Plaintext seen only by a
 - A failed gate signs **zero** vouchers — you never pay a host that can't prove it's blind
 - A swapped enclave **can't decrypt** the payload (encrypted to the attested key)
 
-**Honest scope:** the payment↔enclave binding ships as an unenforced **label** (`meta.enclaveKey`), not a settlement gate — the real guarantee is verify-before-pay + encryption-to-the-attested-key. Code-measurement pinning is **opt-in** (`EXPECTED_MEASUREMENT`); the default is **soft-pin** ("same enclave the service advertised"), not "trusted reproducible build." See [docs/adr/0001](docs/adr/0001-temprouter-is-a-blind-relay.md) and [docs/adr/0002](docs/adr/0002-attestation-bound-mpp-settlement.md).
-
 ## Architecture
 
 📖 **[View architecture diagram (Excalidraw)](docs/architecture.excalidraw)** — editable, opens at [excalidraw.com](https://excalidraw.com)
@@ -96,7 +93,7 @@ npm run cli -- verify
 
 **2. Single inference (end-to-end):**
 ```bash
-# Fund a Tempo testnet wallet first (test pathUSD): https://explore.testnet.tempo.xyz
+# Fund a testnet wallet first: https://explore.testnet.tempo.xyz
 AGENT_PRIVATE_KEY=0x… SERVER_URL=http://localhost:8402 npm run agent
 ```
 
@@ -113,8 +110,6 @@ MPP_SECRET_KEY=$(openssl rand -hex 24) \
 npm start
 ```
 
-- **No `TEE_ENDPOINT`** → `mode=stub`: there's no live TDX, so the agent's attestation gate correctly **refuses to pay** (the demo's "refusal" run).
-
 ## Integration
 
 Four surfaces, same verify-before-pay lane:
@@ -124,7 +119,7 @@ Four surfaces, same verify-before-pay lane:
 | **SDK** | `npm install @temprouter/sdk` | `client.infer(prompt)` → `{ answer, units, paid }` |
 | **CLI** | `npm run cli --` | `temprouter infer "…"`, `verify`, `detect` |
 | **MCP** | stdio server | Tools: `private_inference`, `verify_enclave`, `detect_sensitive` |
-| **Skill** | `npx skills add Router-Labs/tempRouter` | Auto-routes sensitive prompts to the private lane |
+| **Skill** | `npx skills add Router-Labs/tempRouter` | Auto-routes sensitive prompts to private lane |
 
 **SDK example:**
 ```ts
@@ -132,13 +127,13 @@ import { TempRouter, detectSensitive } from '@temprouter/sdk'
 
 const client = new TempRouter({
   serverUrl: 'https://temprouter.onrender.com',
-  account: process.env.AGENT_PRIVATE_KEY as `0x${string}`, // funded Tempo testnet wallet
+  account: process.env.AGENT_PRIVATE_KEY as `0x${string}`,
 })
 
 if (detectSensitive(prompt).sensitive) {
   const { answer, units, paid } = await client.infer(prompt)
   // verify → encrypt → pay per chunk → decrypt
-  // throws AttestationError on a failed gate (zero vouchers signed)
+  // throws AttestationError on failed gate (zero vouchers signed)
 }
 ```
 
@@ -154,12 +149,13 @@ Environment variables (see [`.env.example`](.env.example)):
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `TEE_ENDPOINT` | No | — | Phala TDX base URL (`…/tee`). Unset → stub mode. |
+| `NETWORK` | No | `testnet` | `testnet` (Moderato 42431) or `mainnet` (Allegro 4217). |
 | `MPP_SECRET_KEY` | Yes | — | HMAC secret for challenge binding (not a chain key). |
-| `TEMPO_RECIPIENT` | Yes | — | Wallet address receiving pathUSD payments (your earnings address). |
+| `TEMPO_RECIPIENT` | Yes | — | Wallet address receiving stablecoin payments. |
 | `TEMPO_RECIPIENT_PRIVATE_KEY` | No | — | Payee key for cooperative channel close. |
-| `PRICE_PER_UNIT` | No | `0.0002` | pathUSD per response-chunk. |
-| `CHUNK_COUNT` | No | `1` | SSE chunks per inference (metering granularity; one charge per inference at `1`). |
-| `AGENT_PRIVATE_KEY` | Agent | — | Funded Tempo testnet wallet key (client side). |
+| `PRICE_PER_UNIT` | No | `0.0002` | Stablecoin per response-chunk. |
+| `CHUNK_COUNT` | No | `1` | SSE chunks per inference (metering granularity). |
+| `AGENT_PRIVATE_KEY` | Agent | — | Funded Tempo wallet key (client side). |
 | `EXPECTED_MEASUREMENT` | No | — | Strict-pin of enclave `mrtd` (else soft-pin). |
 
 ## API Endpoints
@@ -172,7 +168,6 @@ Environment variables (see [`.env.example`](.env.example)):
 | `GET` | `/openapi.json` | MPP service discovery (`x-service-info` + `x-payment-info`) |
 | `GET` | `/llms.txt` | Agent-readable context |
 | `GET` | `/SKILL.md` | Agent skill entrypoint |
-| `GET` | `/health` | Liveness/readiness (mode, uptime) |
 | `GET` | `/` | Landing page (browser) / service JSON (agent) |
 
 ## Discovery
@@ -183,9 +178,8 @@ tempRouter is autonomously discoverable:
 - **llms.txt** at `/llms.txt` — agent-readable context
 - **Agent Skill** at `/SKILL.md` — installable via `npx skills add`
 - **402 Challenge** — live MPP payment terms on every payable endpoint
-- **robots.txt** at `/robots.txt` + **`/.well-known/*` aliases** — crawler/agent surface
-- **MPPScan** — register now at https://www.mppscan.com/register
-- **tempoxyz/mpp curated registry** — deferred until mainnet (see [DISCOVERY.md](docs/DISCOVERY.md))
+- **MPPScan** — register at https://www.mppscan.com/register
+- **mpp.dev/services** — curated directory (see [DISCOVERY.md](docs/DISCOVERY.md))
 
 ## Project Structure
 
@@ -194,7 +188,7 @@ tempRouter/
 ├── src/
 │   ├── server.ts            # Hono server — blind relay + mppx payment middleware
 │   ├── agent.ts             # Client-side agent (verify → encrypt → pay → decrypt)
-│   ├── config.ts            # Config + Tempo testnet chain constants
+│   ├── config.ts            # Config + Tempo chain constants (testnet/mainnet)
 │   ├── detectSensitive.ts   # Client-side secret/PII detector
 │   ├── verifyAttestation.ts # Intel DCAP verification logic
 │   └── upstream.ts          # Phala TDX enclave passthrough
@@ -208,6 +202,7 @@ tempRouter/
 │   └── robots.txt           # Crawler rules
 ├── docs/
 │   ├── architecture.excalidraw  # Architecture flow diagram
+│   ├── HACKATHON.md             # Hackathon submission writeup
 │   ├── DISCOVERY.md             # MPP catalog listing guide
 │   └── adr/                     # Architecture Decision Records
 │       ├── 0001-temprouter-is-a-blind-relay.md
@@ -231,11 +226,15 @@ decrypt to plaintext answer.`
 - ✅ Server boots `mode=tdx-live`; discovery + landing page serve
 - ✅ Attestation-gated payment, real MPP session on Tempo Moderato, real pathUSD spent
 - ✅ SDK · CLI · MCP · agent skill shipped, all verified end-to-end on testnet
-- ✅ Funded testnet wallet (`mppx account temprouter`)
+- ✅ Multi-unit streaming supported (`CHUNK_COUNT > 1`); prod bills one charge per inference
+- ✅ Cooperative `manager.close()` settles on-chain as the payee
 
-**✅ ADR-0003 closed (2026-06-17) — see [ADR-0003](docs/adr/0003-per-unit-sse-metering.md):**
-- ✅ Multi-unit streaming (`CHUNK_COUNT > 1`) supported + verified; **prod bills one charge per inference** (`CHUNK_COUNT=1`). (Fixed a request-classification bug where header-only voucher POSTs were misread as billable content.)
-- ✅ Cooperative `manager.close()` settles on-chain as the payee (opt-in via `TEMPO_RECIPIENT_PRIVATE_KEY`).
+## TODO
+
+- [ ] **List on MPPScan** — register at https://www.mppscan.com/register (instant, ~2 min)
+- [ ] **List on mpp.dev/services** — open PR to `quiknode-labs/mpp-dev-official-docs` (see [DISCOVERY.md](docs/DISCOVERY.md))
+- [ ] **Add GitHub topics** — `mpp`, `ai-inference`, `tee`, `intel-tdx`, `privacy`, `stablecoins`, `agents`
+- [ ] **Hackathon submission** — submit repo + live link to Futura Camp Berlin judges
 
 ## Documentation
 
@@ -243,6 +242,7 @@ decrypt to plaintext answer.`
 |---|---|
 | [DESIGN.md](DESIGN.md) | Locked design spec + 4-day build plan |
 | [CONTEXT.md](CONTEXT.md) | Domain glossary (TEE, MPP, DCAP, Tempo) |
+| [docs/HACKATHON.md](docs/HACKATHON.md) | Hackathon submission writeup (devpost format) |
 | [docs/DISCOVERY.md](docs/DISCOVERY.md) | How to list tempRouter on MPP catalogs |
 | [docs/architecture.excalidraw](docs/architecture.excalidraw) | Editable architecture flow diagram |
 | [docs/adr/0001](docs/adr/0001-temprouter-is-a-blind-relay.md) | ADR: tempRouter is a blind relay |
@@ -252,8 +252,8 @@ decrypt to plaintext answer.`
 
 ## Contributing
 
-This is a hackathon project. PRs welcome on the [`Router-Labs/tempRouter`](https://github.com/Router-Labs/tempRouter) repo. See the existing [ADR docs](docs/adr/) for architectural context before contributing.
+This is a hackathon project. PRs welcome on the [`Router-Labs/tempRouter`](https://github.com/Router-Labs/tempRouter) repo. See existing [ADR docs](docs/adr/) for architectural context before contributing.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE) if present, otherwise assume MIT.

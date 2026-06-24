@@ -16,7 +16,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { privateKeyToAccount } from 'viem/accounts'
 import { z } from 'zod'
-import { config, resolveMode, tempoTestnet, type PrivacyMode } from './config.js'
+import { config, resolveMode, tempoChain, isMainnet, type PrivacyMode } from './config.js'
 import { teeProcess, fetchAttestation, fetchTeePublicKeyRaw, chunk } from './upstream.js'
 import { log } from './logger.js'
 
@@ -50,8 +50,8 @@ const mppx = Mppx.create({
       // An `account` makes the server sign settlement as the payee AND become the
       // recipient; otherwise fall back to the address-only recipient (no cooperative close).
       ...(settlementAccount ? { account: settlementAccount } : { recipient: config.recipient }),
-      testnet: true, // Tempo Moderato, currency pathUSD
-      chainId: tempoTestnet.chainId, // 42431 — REQUIRED: session intent else defaults to mainnet 4217
+      testnet: !isMainnet, // Moderato (testnet) or Allegro (mainnet)
+      chainId: tempoChain.chainId, // 42431 testnet | 4217 mainnet
       store: Store.memory(),
       sse: true, // per-unit SSE metering on the session method
     }),
@@ -109,10 +109,10 @@ app.get('/', (c) => {
     name: 'tempRouter',
     what: 'MPP-paid, attestation-gated private AI inference on Tempo',
     mode: MODE,
-    network: { chainId: tempoTestnet.chainId, currency: 'pathUSD', explorer: tempoTestnet.explorer },
+    network: { chainId: tempoChain.chainId, currency: tempoChain.currencyName, explorer: tempoChain.explorer },
     privacy: 'prompt is E2E-encrypted to a real Phala Intel TDX enclave; this relay is blind',
     endpoints: {
-      'POST /v1/chat/completions/stream': `session, ${config.pricePerUnit} pathUSD/response-chunk (SSE)`,
+      'POST /v1/chat/completions/stream': `session, ${config.pricePerUnit} ${tempoChain.currencyName}/response-chunk (SSE)`,
       'GET /tee/attestation': 'enclave attestation (verify before you pay)',
       'GET /openapi.json': 'MPP service discovery',
       'GET /llms.txt': 'agent-readable context',
@@ -211,10 +211,10 @@ app.post('/v1/chat/completions/stream', async (c) => {
 
 // ── MPP service discovery (mpp.dev/services + MPPScan) ───────────────────────
 app.get('/openapi.json', (c) => {
-  const amountRaw = String(Math.round(Number(config.pricePerUnit) * 10 ** tempoTestnet.decimals))
+  const amountRaw = String(Math.round(Number(config.pricePerUnit) * 10 ** tempoChain.decimals))
   return c.json({
     openapi: '3.1.0',
-    info: { title: 'tempRouter', version: '0.1.0', description: 'Attestation-gated private AI inference, paid per response-chunk in pathUSD on Tempo.' },
+    info: { title: 'tempRouter', version: '0.1.0', description: `Attestation-gated private AI inference, paid per response-chunk in ${tempoChain.currencyName} on Tempo.` },
     servers: [{ url: c.req.url.replace(/\/openapi\.json$/, ''), description: 'Current origin' }],
     'x-service-info': {
       categories: ['ai', 'inference', 'privacy'],
@@ -225,7 +225,7 @@ app.get('/openapi.json', (c) => {
         post: {
           summary: 'Private TDX inference, metered per response-chunk over SSE',
           'x-payment-info': {
-            offers: [{ amount: amountRaw, currency: tempoTestnet.pathUsd, intent: 'session', method: 'tempo' }],
+            offers: [{ amount: amountRaw, currency: tempoChain.currency, intent: 'session', method: 'tempo' }],
           },
           responses: {
             '200': { description: 'OK (SSE stream of decrypted response chunks)', content: { 'text/event-stream': {} } },

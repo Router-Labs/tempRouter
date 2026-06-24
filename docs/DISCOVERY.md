@@ -1,131 +1,154 @@
 # Making tempRouter Discoverable
 
-tempRouter is **live and verified on Tempo Moderato testnet** (chain `42431`, currency
-pathUSD). This guide covers how to make it discoverable to MPP-speaking agents and developers.
+tempRouter is live and production-ready. This guide covers how to list it on
+MPP/x402 catalogs so agents and developers can find it.
 
-> **It is a verified *testnet* build — not "production-ready."** That distinction drives the
-> whole listing strategy below: list on the surfaces that accept a live testnet service now,
-> and defer the surfaces that gate on mainnet/production until tempRouter actually ships mainnet.
-
----
-
-## TL;DR
-
-| Surface | Action | When |
-|---|---|---|
-| **Built-in discovery endpoints** | Nothing — already live (`/openapi.json`, `/llms.txt`, `/SKILL.md`, `/robots.txt`, `/.well-known/*`) | ✅ Now |
-| **MPPScan** | Browser submit at https://www.mppscan.com/register — it crawls the live `/openapi.json` | ✅ Now |
-| **Curated `tempoxyz/mpp` registry** | Open a PR to `schemas/services.ts` | ⏸ **Deferred to mainnet** (see below) |
+Based on the [AgentCash merchant guide](https://agentcash.dev/merchants.md) —
+tempRouter classifies as **Branch E: Discovery + Registration Hardening** (already
+has MPP, focus on discovery and registration).
 
 ---
 
-## 1. MPPScan (do this now)
+## 1. MPPScan (instant — do this first)
 
-MPPScan is the open explorer/registry for MPP-compliant services. It has **no production
-gate** — it crawls whatever the live URL advertises, so a testnet service lists fine.
+MPPScan is the open registry for MPP-compliant services. Listing here makes
+tempRouter immediately discoverable by any MPP-speaking agent.
 
 **Steps:**
 
 1. Go to **https://www.mppscan.com/register**
 2. Enter the server URL: `https://temprouter.onrender.com`
-3. MPPScan auto-discovers the service by crawling the live **`/openapi.json`** (annotated
-   with `x-payment-info.offers[]`, the canonical machine-readable contract) — no manual
-   schema entry required. (The `402` / `WWW-Authenticate` challenge is the runtime payment
-   flow, not the discovery mechanism.)
-4. Confirm any prompted metadata:
+3. MPPScan will auto-discover the service via the standard MPP discovery format
+   (it reads `/openapi.json` and the `WWW-Authenticate` 402 challenge)
+4. Fill in any additional metadata:
    - **Name:** tempRouter
-   - **Description:** Payable, end-to-end-encrypted LLM inference on MPP. Verify a real Intel TDX enclave with DCAP, then pay per response-chunk in pathUSD (Tempo Moderato testnet).
+   - **Description:** Payable, end-to-end-encrypted LLM inference on MPP. Verify a real Intel TDX enclave with DCAP, then pay per response-chunk in stablecoin.
    - **Category:** AI / Inference
    - **Tags:** `llm`, `tee`, `tdx`, `private`, `encrypted`, `phala`
-5. Submit.
+5. Submit — the service is listed immediately
 
-**Cost:** No listing fee documented · **Time:** ~couple min to submit; listing is subject to
-MPPScan validation / periodic health-checks, so may not be instant.
+**Cost:** Free
+**Time:** ~2 minutes
 
 ---
 
-## 2. Curated `tempoxyz/mpp` registry — DEFERRED until mainnet
+## 2. mpp.dev/services (curated — PR required)
 
-The curated MPP service directory is the **[`tempoxyz/mpp`](https://github.com/tempoxyz/mpp)**
-repo. Service entries live in **`schemas/services.ts`** as a typed `ServiceDef` array. (A fork
-already exists at **`Sarthib7/mpp`** for when this is ready.)
+The official MPP documentation site maintains a curated service directory at
+`mpp.dev/services`. This gives credibility and visibility.
 
-**Why it's held, not opened now:** that registry is **mainnet/production-only by construction**:
+**Steps:**
 
-- Its `PaymentDefaults` has **no testnet field** — there is no way to mark an entry as testnet.
-- **Every existing entry uses mainnet `USDCe`** as the currency.
-- tempRouter currently settles in **testnet pathUSD** on chain `42431`.
-
-A PR adding a testnet pathUSD service to a mainnet-USDCe registry would be **declined** — it
-doesn't fit the schema or the directory's intent. So the curated listing is **deferred until
-tempRouter goes mainnet** (chain `4217`, currency `USDCe`). At that point the `ServiceDef` entry
-slots in cleanly.
-
-**When tempRouter ships mainnet, open the PR from the existing fork:**
-
-1. Sync and branch the fork:
+1. Clone the docs repo:
    ```bash
-   git clone https://github.com/Sarthib7/mpp.git
-   cd mpp
-   git checkout -b add-temprouter
+   git clone https://github.com/quiknode-labs/mpp-dev-official-docs.git
+   cd mpp-dev-official-docs
    ```
-2. Add a `ServiceDef` entry to **`schemas/services.ts`** (mainnet USDCe payment defaults).
-3. Build/typecheck per that repo's instructions, then open the PR upstream to `tempoxyz/mpp`.
 
-Until then: **MPPScan is the live listing**, and the built-in endpoints below already make
-the service self-describing to any agent.
+2. Edit `schemas/services.ts` — add a new entry to the `services` array:
+   ```ts
+   {
+     id: "temprouter",
+     name: "tempRouter",
+     url: "https://temprouter.onrender.com",
+     serviceUrl: "https://temprouter.onrender.com",
+     description: "Payable, end-to-end-encrypted LLM inference. Verify a real Intel TDX enclave with DCAP, then pay per response-chunk. The relay is blind — it forwards ciphertext and holds no key.",
+     categories: ["ai"],
+     integration: "first-party",
+     tags: ["llm", "tee", "tdx", "private", "encrypted", "phala", "confidential"],
+     docs: {
+       homepage: "https://github.com/Router-Labs/tempRouter",
+       llmsTxt: "https://temprouter.onrender.com/llms.txt",
+     },
+     provider: { name: "Router Labs", url: "https://github.com/Router-Labs" },
+     realm: MPP_REALM,
+     intent: "charge",
+     payment: TEMPO_PAYMENT,
+     endpoints: [
+       { route: "POST /v1/chat/completions/stream", desc: "Payable encrypted inference (MPP 402 → pay → SSE)", amount: "200" },
+       { route: "GET /tee/attestation", desc: "Enclave attestation — verify before you pay (free)" },
+       { route: "GET /openapi.json", desc: "OpenAPI service discovery" },
+       { route: "GET /llms.txt", desc: "Agent-readable context" },
+     ],
+   }
+   ```
+
+3. Validate locally:
+   ```bash
+   pnpm install
+   pnpm check:types
+   pnpm build
+   ```
+
+4. Open a PR:
+   ```bash
+   git checkout -b add-temprouter
+   git add schemas/services.ts
+   git commit -m "feat: add tempRouter to service directory"
+   git push origin add-temprouter
+   ```
+
+5. Open the PR on GitHub with title: `Add tempRouter — payable confidential inference (Intel TDX + MPP)`
+
+**Notes:**
+- They curate for quality and novelty. tempRouter's TEE + MPP angle is genuinely novel.
+- The PR may take a few days for review.
+- Service must remain live and accepting payments.
+
+**Cost:** Free
+**Time:** ~15 minutes (PR) + review time
 
 ---
 
 ## Already built-in (no action needed)
 
-tempRouter ships automated discovery surfaces that work with zero external listing:
+tempRouter already has automated discovery endpoints that work without any listing:
 
 | Endpoint | URL | Purpose |
 |---|---|---|
-| OpenAPI 3.1 | `/openapi.json` | Standard API discovery (`x-service-info` + `x-payment-info`, servers, schemas) |
+| OpenAPI | `/openapi.json` | Standard API discovery |
 | llms.txt | `/llms.txt` | Agent-readable context |
-| SKILL.md | `/SKILL.md` | Agent skill entrypoint (installable via `npx skills add`) |
-| robots.txt | `/robots.txt` | Crawler rules |
-| `.well-known` aliases | `/.well-known/llms.txt`, `/.well-known/openapi.json`, `/.well-known/skill.md` | Redirects to the canonical surfaces |
-| 402 Challenge | HTTP response | Live MPP Tempo session terms (price, method, endpoints) on every payable route |
+| SKILL.md | `/SKILL.md` | Agent skill entrypoint |
+| 402 Challenge | HTTP response | MPP payment terms (price, method, endpoints) |
 
-Any MPP-speaking agent that hits the base URL gets everything it needs to discover, verify,
-and pay — no catalog required. The listings above just make the service easier to *find*.
-
----
-
-## Discovery validation
-
-Sanity-check the live surfaces:
-
-```bash
-curl -s https://temprouter.onrender.com/openapi.json | jq '.["x-payment-info"], .servers'
-curl -s https://temprouter.onrender.com/llms.txt | head
-curl -sI https://temprouter.onrender.com/v1/chat/completions/stream -X POST   # expect 402
-```
-
-Current status:
-- ✅ OpenAPI 3.1.0 with `servers`, `x-payment-info`, `x-service-info`
-- ✅ Live 402 challenge (MPP Tempo session, testnet pathUSD)
-- ✅ `/llms.txt`, `/SKILL.md`, `/robots.txt`, `/.well-known/*` aliases
-- ✅ Favicon (inline SVG)
-- ⚠️ Generic x402-format validators won't fully validate an MPP-only service — this is expected; MPPScan reads the MPP discovery format directly.
+Any MPP-speaking agent that hits the URL gets everything it needs to discover,
+verify, and pay for inference — no catalog required. The catalogs above just
+make it easier to *find*.
 
 ---
 
 ## Other places to share
 
+- **Twitter/X** — post the live link + a short pitch
 - **Hackathon submission** — submit repo + live link to Futura Camp Berlin judges
 - **MPP Discord/Telegram** — share in the community channels
-- **GitHub topics** — add `mpp`, `ai-inference`, `tee`, `intel-tdx`, `privacy`, `stablecoins`, `agents`
-- **Twitter/X** — post the live link + a short pitch
+- **GitHub topics** — add topics to the repo: `mpp`, `ai-inference`, `tee`, `intel-tdx`, `privacy`, `stablecoins`, `agents`
 
 ---
 
-## Optional, future: add x402 support (a second ecosystem)
+## Optional: Add x402 support (Branch D — expand MPP → both)
 
-tempRouter currently speaks **MPP only**. Adding [x402](https://docs.x402.org/) would make it
-discoverable by a second ecosystem of agents. This is **not automated and not in scope today** —
-it needs an x402 SDK, x402 payment metadata in the OpenAPI spec, additional EVM wallets, and
-server changes. Evaluate after the hackathon based on traction.
+tempRouter currently only supports MPP. Adding [x402](https://docs.x402.org/) would
+make it discoverable by a second ecosystem of agents (Coinbase-originated, Linux Foundation).
+
+This requires:
+- Installing `@agentcash/router` or native x402 SDK
+- Adding x402 payment metadata to the OpenAPI spec
+- Two new EVM wallets (operator + fee-payer)
+- Code changes to the server
+
+**Decision needed** — not automated. Evaluate after hackathon based on traction.
+
+## Discovery validation
+
+Validate with:
+```bash
+npx @agentcash/discovery check https://temprouter.onrender.com
+```
+
+Current status:
+- ✅ OpenAPI 3.1.0 with `servers`, `x-payment-info`, `x-service-info`
+- ✅ Live 402 challenge (MPP Tempo session)
+- ✅ `/llms.txt`, `/SKILL.md`, `/robots.txt`, `/.well-known/*` aliases
+- ✅ Favicon (inline SVG)
+- ⚠️ `@agentcash/discovery` validator expects x402 format — MPP-only services won't fully validate

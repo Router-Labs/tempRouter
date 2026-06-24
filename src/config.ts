@@ -1,6 +1,5 @@
-// Central config + Tempo testnet constants (sourced from mppx defaults).
-// Testnet-only is intentional — tempRouter ships against Tempo Moderato (chain 42431,
-// pathUSD). There is deliberately no mainnet/NETWORK switch here.
+// Central config + Tempo chain constants (sourced from mppx defaults).
+// Supports both testnet (Moderato, 42431) and mainnet (Allegro, 4217) via NETWORK env.
 import process from 'node:process'
 // Native .env loader (Node 20.12+), no dependency. Safe if .env is absent.
 try {
@@ -45,14 +44,30 @@ export const config = {
   upstreamModel: process.env.UPSTREAM_MODEL ?? 'nosana:gpt-oss:20b',
 } as const
 
-// Tempo testnet ("Moderato") — verified from mppx/dist/tempo/internal/defaults.
+// Tempo chains — verified from mppx/dist/tempo/internal/defaults.
+// Mainnet (Allegro): chain 4217, currency USDC.e
+// Testnet (Moderato): chain 42431, currency pathUSD
+export const tempoMainnet = {
+  chainId: 4217,
+  rpcUrl: 'https://rpc.tempo.xyz',
+  explorer: 'https://explore.tempo.xyz',
+  currency: '0x20C000000000000000000000b9537d11c60E8b50' as `0x${string}`, // USDC.e
+  currencyName: 'USDC',
+  decimals: 6,
+} as const
+
 export const tempoTestnet = {
   chainId: 42431,
   rpcUrl: 'https://rpc.moderato.tempo.xyz',
   explorer: 'https://explore.testnet.tempo.xyz',
-  pathUsd: '0x20c0000000000000000000000000000000000000' as `0x${string}`,
+  currency: '0x20c0000000000000000000000000000000000000' as `0x${string}`, // pathUSD
+  currencyName: 'pathUSD',
   decimals: 6,
 } as const
+
+// Active chain — select via NETWORK env ("mainnet" | "testnet"), default testnet.
+export const isMainnet = process.env.NETWORK === 'mainnet'
+export const tempoChain = isMainnet ? tempoMainnet : tempoTestnet
 
 // Derived: where to fetch the enclave attestation + public key (blind passthrough).
 export const teeAttestationUrl = config.teeEndpoint ? `${config.teeEndpoint}/attestation` : ''
