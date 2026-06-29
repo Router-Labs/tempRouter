@@ -5,7 +5,7 @@ description: Call tempRouter — a payable, end-to-end-encrypted LLM inference e
 
 # tempRouter — payable confidential inference (entrypoint)
 
-**Live endpoint:** `https://temprouter.onrender.com`
+**Live endpoint:** `https://mpp.solrouter.com`
 - `POST /v1/chat/completions/stream` — the payable inference endpoint (MPP 402 → pay → SSE)
 - `GET /tee/attestation` — enclave attestation (verify before you pay)
 - `GET /openapi.json` · `GET /llms.txt` — MPP service discovery
@@ -17,7 +17,7 @@ Three fastest ways to try tempRouter right now:
 ### 1. Verify-only (free, no payment)
 ```bash
 temprouter verify
-# or: curl https://temprouter.onrender.com/tee/attestation | jq
+# or: curl https://mpp.solrouter.com/tee/attestation | jq
 ```
 Fetches the live enclave attestation report and runs DCAP verification. Costs nothing —
 just confirms the enclave is real. Good for kicking the tires.
@@ -66,7 +66,7 @@ Pick a surface; all run the same dance (**verify → encrypt → pay per chunk �
 import { TempRouter, detectSensitive } from '@temprouter/sdk'
 
 const client = new TempRouter({
-  serverUrl: 'https://temprouter.onrender.com',
+  serverUrl: 'https://mpp.solrouter.com',
   account: process.env.AGENT_PRIVATE_KEY as `0x${string}`, // funded Tempo testnet wallet
 })
 if (detectSensitive(prompt).sensitive) {
@@ -150,4 +150,4 @@ attestation. This indicates a potential MITM or enclave swap mid-session.
 ```bash
 npx skills add Router-Labs/tempRouter
 ```
-Or read it live at `https://temprouter.onrender.com/SKILL.md`.
+Or read it live at `https://mpp.solrouter.com/SKILL.md`.

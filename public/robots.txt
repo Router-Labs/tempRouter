@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Agent / registry discovery surfaces:
-#   MPP / OpenAPI:   https://temprouter.onrender.com/openapi.json
-#   Agent context:   https://temprouter.onrender.com/llms.txt
-#   Agent skill:     https://temprouter.onrender.com/SKILL.md
-#   Attestation:     https://temprouter.onrender.com/tee/attestation
+#   MPP / OpenAPI:   https://mpp.solrouter.com/openapi.json
+#   Agent context:   https://mpp.solrouter.com/llms.txt
+#   Agent skill:     https://mpp.solrouter.com/SKILL.md
+#   Attestation:     https://mpp.solrouter.com/tee/attestation
