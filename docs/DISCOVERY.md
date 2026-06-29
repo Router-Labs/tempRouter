@@ -17,7 +17,7 @@ tempRouter immediately discoverable by any MPP-speaking agent.
 **Steps:**
 
 1. Go to **https://www.mppscan.com/register**
-2. Enter the server URL: `https://temprouter.onrender.com`
+2. Enter the server URL: `https://mpp.solrouter.com`
 3. MPPScan will auto-discover the service via the standard MPP discovery format
    (it reads `/openapi.json` and the `WWW-Authenticate` 402 challenge)
 4. Fill in any additional metadata:
@@ -50,15 +50,15 @@ The official MPP documentation site maintains a curated service directory at
    {
      id: "temprouter",
      name: "tempRouter",
-     url: "https://temprouter.onrender.com",
-     serviceUrl: "https://temprouter.onrender.com",
+     url: "https://mpp.solrouter.com",
+     serviceUrl: "https://mpp.solrouter.com",
      description: "Payable, end-to-end-encrypted LLM inference. Verify a real Intel TDX enclave with DCAP, then pay per response-chunk. The relay is blind — it forwards ciphertext and holds no key.",
      categories: ["ai"],
      integration: "first-party",
      tags: ["llm", "tee", "tdx", "private", "encrypted", "phala", "confidential"],
      docs: {
        homepage: "https://github.com/Router-Labs/tempRouter",
-       llmsTxt: "https://temprouter.onrender.com/llms.txt",
+       llmsTxt: "https://mpp.solrouter.com/llms.txt",
      },
      provider: { name: "Router Labs", url: "https://github.com/Router-Labs" },
      realm: MPP_REALM,
@@ -143,7 +143,7 @@ This requires:
 
 Validate with:
 ```bash
-npx @agentcash/discovery check https://temprouter.onrender.com
+npx @agentcash/discovery check https://mpp.solrouter.com
 ```
 
 Current status:

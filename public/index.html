@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>" />
 <title>tempRouter — payable, end-to-end-encrypted LLM inference on MPP</title>
 <meta name="description" content="A payable inference endpoint on MPP (Tempo). Pay per response-chunk in pathUSD after your agent verifies a real Intel TDX enclave with Intel DCAP — end-to-end encrypted, the relay is blind. Drop-in via SDK, CLI, MCP, or agent skill." />
-<link rel="canonical" href="https://temprouter.onrender.com/" />
+<link rel="canonical" href="https://mpp.solrouter.com/" />
 <!-- Agent / registry discovery surfaces -->
 <link rel="service-desc" type="application/json" href="/openapi.json" title="MPP / OpenAPI discovery" />
 <link rel="alternate" type="text/markdown" href="/llms.txt" title="llms.txt — agent context" />
@@ -17,7 +17,7 @@
 <meta property="og:site_name" content="tempRouter" />
 <meta property="og:title" content="tempRouter — payable, E2E-encrypted LLM inference on MPP" />
 <meta property="og:description" content="Pay an LLM in pathUSD only after your agent proves (Intel DCAP) it runs inside a real Intel TDX enclave that can't read the prompt." />
-<meta property="og:url" content="https://temprouter.onrender.com/" />
+<meta property="og:url" content="https://mpp.solrouter.com/" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="tempRouter — payable, E2E-encrypted LLM inference on MPP" />
 <meta name="twitter:description" content="Verify a real Intel TDX enclave, then pay per response-chunk in pathUSD. End-to-end encrypted; the relay is blind." />
@@ -27,8 +27,8 @@
   "@type": "WebAPI",
   "name": "tempRouter",
   "description": "Payable, end-to-end-encrypted LLM inference on MPP (Tempo). Verify a real Intel TDX enclave with Intel DCAP, then pay per response-chunk in pathUSD.",
-  "url": "https://temprouter.onrender.com/",
-  "documentation": "https://temprouter.onrender.com/llms.txt",
+  "url": "https://mpp.solrouter.com/",
+  "documentation": "https://mpp.solrouter.com/llms.txt",
   "provider": { "@type": "Organization", "name": "Router Labs", "url": "https://github.com/Router-Labs" },
   "offers": { "@type": "Offer", "price": "0.0002", "priceCurrency": "pathUSD", "description": "per response-chunk, MPP session on Tempo" }
 }
@@ -347,7 +347,7 @@ $ decrypt locally                → <span class="g">plaintext — seen only by 
   <pre><span class="c">// @temprouter/sdk — the whole lane in one call</span>
 <span class="k">import</span> { TempRouter, detectSensitive } <span class="k">from</span> <span class="s">'@temprouter/sdk'</span>
 
-<span class="k">const</span> client = <span class="k">new</span> TempRouter({ serverUrl: <span class="s">'https://temprouter.onrender.com'</span>, account }) <span class="c">// funded Tempo wallet</span>
+<span class="k">const</span> client = <span class="k">new</span> TempRouter({ serverUrl: <span class="s">'https://mpp.solrouter.com'</span>, account }) <span class="c">// funded Tempo wallet</span>
 
 <span class="k">if</span> (detectSensitive(prompt).sensitive) {
   <span class="k">const</span> { answer, paid } = <span class="k">await</span> client.infer(prompt) <span class="c">// verify → encrypt → pay → decrypt</span>
@@ -382,7 +382,7 @@ $ temprouter infer <span class="s">"rotate this leaked sk-proj-… key — exact
     <div class="desc">The live enclave attestation (<code>teeType: INTEL-TDX-PHALA</code> + TDX quote). Verify with Intel DCAP before signing a voucher.</div>
   </div>
   <pre><span class="c"># any MPP-speaking agent — the CLI handles the 402 → pay → retry</span>
-tempo request <span class="s">https://temprouter.onrender.com/v1/chat/completions/stream</span> \
+tempo request <span class="s">https://mpp.solrouter.com/v1/chat/completions/stream</span> \
   -d <span class="s">'{"encryptedPrompt":"…","model":"nosana:gpt-oss:20b"}'</span></pre>
 </div></section>
 

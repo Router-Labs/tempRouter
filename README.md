@@ -3,11 +3,11 @@
 > **Confidential compute behind Intel TDX, payable per chunk on Tempo.**
 > No API keys. No trust required. — *MPP Hackathon @ Futura Camp Berlin 2026.*
 
-[![Live](https://img.shields.io/badge/live-temprouter.onrender.com-00ff88)](https://temprouter.onrender.com)
+[![Live](https://img.shields.io/badge/live-mpp.solrouter.com-00ff88)](https://mpp.solrouter.com)
 [![GitHub](https://img.shields.io/badge/GitHub-Router--Labs/tempRouter-181717)](https://github.com/Router-Labs/tempRouter)
 [![License](https://img.shields.io/badge/license-MIT-blue)](#license)
 
-**Live:** https://temprouter.onrender.com · [OpenAPI](https://temprouter.onrender.com/openapi.json) · [Attestation](https://temprouter.onrender.com/tee/attestation) · [Agent Skill](https://temprouter.onrender.com/SKILL.md)
+**Live:** https://mpp.solrouter.com · [OpenAPI](https://mpp.solrouter.com/openapi.json) · [Attestation](https://mpp.solrouter.com/tee/attestation) · [Agent Skill](https://mpp.solrouter.com/SKILL.md)
 
 ---
 
@@ -126,7 +126,7 @@ Four surfaces, same verify-before-pay lane:
 import { TempRouter, detectSensitive } from '@temprouter/sdk'
 
 const client = new TempRouter({
-  serverUrl: 'https://temprouter.onrender.com',
+  serverUrl: 'https://mpp.solrouter.com',
   account: process.env.AGENT_PRIVATE_KEY as `0x${string}`,
 })
 

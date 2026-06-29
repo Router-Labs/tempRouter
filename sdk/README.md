@@ -26,7 +26,7 @@ npm i @temprouter/sdk mppx @solrouter/sdk viem
 import { TempRouter, detectSensitive } from '@temprouter/sdk'
 
 const client = new TempRouter({
-  serverUrl: 'https://temprouter.onrender.com',
+  serverUrl: 'https://mpp.solrouter.com',
   account: process.env.AGENT_PRIVATE_KEY as `0x${string}`, // funded Tempo testnet wallet
 })
 

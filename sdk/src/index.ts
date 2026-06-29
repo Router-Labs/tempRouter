@@ -31,7 +31,7 @@ const PROOF_SENTINEL = '__TEMPROUTER_PROOF__' // final SSE frame carrying the po
 const DEFAULT_MODEL = 'nosana:gpt-oss:20b'
 
 export type TempRouterOptions = {
-  /** tempRouter base URL, e.g. https://temprouter.onrender.com */
+  /** tempRouter base URL, e.g. https://mpp.solrouter.com */
   serverUrl: string
   /** Payer wallet: a viem `Account`, or a `0x` private key (Tempo testnet). Only
    *  required to pay — `verify()` works without it. */
@@ -81,7 +81,7 @@ export class AttestationError extends Error {
  * ```ts
  * import { TempRouter, detectSensitive } from '@temprouter/sdk'
  *
- * const client = new TempRouter({ serverUrl: 'https://temprouter.onrender.com', account: '0x…' })
+ * const client = new TempRouter({ serverUrl: 'https://mpp.solrouter.com', account: '0x…' })
  * if (detectSensitive(prompt).sensitive) {
  *   const { answer } = await client.infer(prompt)   // verify → encrypt → pay → decrypt
  * }

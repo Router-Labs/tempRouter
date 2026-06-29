@@ -42,7 +42,7 @@ Pay-per-use beats API keys for autonomous agents. TEE + Tempo micropayments is a
 
 ## Links
 
-- **Live:** https://temprouter.onrender.com
+- **Live:** https://mpp.solrouter.com
 - **GitHub:** https://github.com/Router-Labs/tempRouter
-- **OpenAPI:** https://temprouter.onrender.com/openapi.json
-- **Agent Skill:** https://temprouter.onrender.com/SKILL.md
+- **OpenAPI:** https://mpp.solrouter.com/openapi.json
+- **Agent Skill:** https://mpp.solrouter.com/SKILL.md
