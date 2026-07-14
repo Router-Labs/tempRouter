@@ -149,6 +149,8 @@ content.
   returns exactly one event — the OPEN — and no close. The production server runs close **best-effort**
   (no payee settlement key set), so the channel deposit reclaims on **timeout** rather than settling
   on-chain. Vouchers are off-chain, so this is the expected MPP shape, not a failure.
+  > **Update 2026-07-14:** cooperative close HAS now been demonstrated on-chain — see the
+  > staging run section below. It remains disabled in prod until `TEMPO_RECIPIENT_PRIVATE_KEY` is set.
 
 ## 6. Payer state (read-only, public RPC)
 
@@ -210,3 +212,37 @@ verification, paid 0.0002 pathUSD per chunk, and decrypted successfully.
 | 3 | `hex-private-key` | Wallet key exposure → security review | [`0x23d1…dee2`](https://explore.testnet.tempo.xyz/tx/0x23d1cabe4dfb85956fcc050d3533d3be1fa2a70850723c2a5bf7217ef8b7dee2) |
 
 All three: 1 unit · 0.0002 pathUSD · total 0.0006 pathUSD on Tempo Moderato testnet.
+
+## Staging run — mainnet-hardening branch (2026-07-14)
+
+Full paid E2E on Tempo Moderato testnet, run against `feat/mainnet-hardening` (PR #3)
+with the real Phala enclave (`mode=tdx-live`, `ready:true`) and — for the first time —
+a **payee settlement key configured**.
+
+```
+detect → pre-pay DCAP verify ✓ → encrypt → 402 → MPP session →
+1 chunk streamed & charged (0.0002 pathUSD) → post-pay receipt ✓ → decrypt ✓
+```
+
+**First on-chain cooperative close.** With `TEMPO_RECIPIENT_PRIVATE_KEY` set, the server
+settled the channel as the payee instead of leaving the deposit to timeout-reclaim:
+
+```
+payee (throwaway)     0x8e790205001a263df321d84c4b1c80daa1e32dab
+nonce                 0 → 1                    (exactly one outgoing tx: the close)
+pathUSD balanceOf     1,000,000 → 999,999.999611
+                      = +0.0002 settled revenue − ~0.000589 close-tx fee
+```
+
+Anyone can verify: the address above has a single outgoing transaction on
+https://explore.testnet.tempo.xyz — the cooperative close.
+
+> ⚠️ **Economics finding:** at `PRICE_PER_UNIT=0.0002` and `CHUNK_COUNT=1`, the close fee
+> (~0.0006) exceeds per-session revenue — every 1-chunk session settles at a net LOSS
+> (≈ −0.0004). Before mainnet: raise the price, meter more chunks per session, or batch
+> settlement (mppx `settlementSchedule`). Tracked in the README TODO.
+
+Also verified in the same session (see PR #3 for the full matrix): mainnet boot guards
+fail closed on demo recipient / placeholder or short `MPP_SECRET_KEY` / payee-key mismatch;
+unknown `NETWORK` values crash the boot instead of silently running testnet; `NETWORK=mainnet`
+serves chainId 4217 / USDC.e consistently on `/`, `/llms.txt`, `/SKILL.md`, `/openapi.json`.
