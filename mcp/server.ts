@@ -12,14 +12,14 @@
 //   • private_inference(prompt, model?) — verify → encrypt → pay-per-chunk → decrypt
 //
 // Wire into an MCP client (e.g. Claude) as a stdio server, with AGENT_PRIVATE_KEY (a
-// funded Tempo testnet wallet) in the environment:
+// funded Tempo wallet on the server's network) in the environment:
 //   { "command": "npx", "args": ["tsx", "/abs/path/tempRouter/mcp/server.ts"] }
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
 import { TempRouter, detectSensitive, formatReport, AttestationError } from '../sdk/src/index.js'
-import { config } from '../src/config.js'
+import { config, tempoChain, isMainnet } from '../src/config.js'
 
 const ok = (t: string) => ({ content: [{ type: 'text' as const, text: t }] })
 const err = (t: string) => ({ content: [{ type: 'text' as const, text: t }], isError: true })
@@ -36,7 +36,7 @@ function makeClient(serverUrl?: string) {
   })
 }
 
-const NO_WALLET = 'AGENT_PRIVATE_KEY not set — fund a Tempo testnet wallet and set it in this MCP server\'s environment.'
+const NO_WALLET = `AGENT_PRIVATE_KEY not set — fund a Tempo ${isMainnet ? 'mainnet wallet (real USDC.e)' : 'testnet wallet'} and set it in this MCP server's environment.`
 
 const server = new McpServer({ name: 'temprouter', version: '0.1.0' })
 
@@ -77,7 +77,7 @@ server.registerTool(
   {
     title: 'Confidential inference (verify → encrypt → pay → decrypt)',
     description:
-      'Run a prompt through tempRouter\'s confidential lane: verify a real Phala Intel TDX enclave with Intel DCAP, encrypt the prompt to the enclave key, pay per response-chunk in pathUSD on Tempo, and decrypt the answer locally. A failed attestation pays NOTHING. Use for any prompt containing secrets, credentials, or PII. The enclave runs an OSS model (gpt-oss:20b) — use it for confidential payloads, not as a frontier-model replacement.',
+      'Run a prompt through tempRouter\'s confidential lane: verify a real Phala Intel TDX enclave with Intel DCAP, encrypt the prompt to the enclave key, pay per response-chunk in the network stablecoin (pathUSD testnet / USDC.e mainnet) on Tempo, and decrypt the answer locally. A failed attestation pays NOTHING. Use for any prompt containing secrets, credentials, or PII. The enclave runs an OSS model (gpt-oss:20b) — use it for confidential payloads, not as a frontier-model replacement.',
     inputSchema: {
       prompt: z.string().describe('The (possibly sensitive) prompt to run privately.'),
       model: z.string().optional().describe('Model id (default nosana:gpt-oss:20b).'),
@@ -88,7 +88,7 @@ server.registerTool(
     if (!config.agentPrivateKey) return err(NO_WALLET)
     try {
       const res = await makeClient(server).infer(prompt, { model })
-      const footer = `\n\n— verified TDX enclave · ${res.units} chunk(s) · ${res.paid} pathUSD${res.attestation.postPay?.ok ? ' · receipt ✓' : ''}`
+      const footer = `\n\n— verified TDX enclave · ${res.units} chunk(s) · ${res.paid} ${tempoChain.currencyName}${res.attestation.postPay?.ok ? ' · receipt ✓' : ''}`
       return ok(res.answer + footer)
     } catch (e) {
       if (e instanceof AttestationError)

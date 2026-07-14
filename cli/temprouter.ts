@@ -8,13 +8,13 @@
 import { parseArgs } from 'node:util'
 import process from 'node:process'
 import { TempRouter, detectSensitive, formatReport, AttestationError } from '../sdk/src/index.js'
-import { config } from '../src/config.js'
+import { config, tempoChain, isMainnet } from '../src/config.js'
 
 const USAGE = `temprouter — attestation-gated, MPP-paid confidential inference on Tempo
 
 usage:
   temprouter infer "<prompt>" [--model <m>] [--server <url>] [--max-deposit <n>] [--json]
-      verify the enclave, pay per response-chunk in pathUSD, decrypt locally.
+      verify the enclave, pay per response-chunk in the network's stablecoin, decrypt locally.
   temprouter verify [--server <url>]
       run the pre-pay attestation gate only. Never pays. Exit 0 if it passes.
   temprouter detect "<text>"
@@ -23,7 +23,7 @@ usage:
 flags:
   --model <m>        model id (default from SDK, e.g. nosana:gpt-oss:20b)
   --server <url>     tempRouter base URL (default: $SERVER_URL or config)
-  --max-deposit <n>  pathUSD deposit headroom (default: config.maxDeposit)
+  --max-deposit <n>  stablecoin deposit headroom (default: config.maxDeposit)
   --json             machine-readable output for 'infer' (no decorative lines)
   -h, --help         show this help
 `
@@ -43,7 +43,7 @@ async function cmdInfer(prompt: string, flags: Record<string, unknown>) {
   }
 
   if (!config.agentPrivateKey) {
-    console.error('AGENT_PRIVATE_KEY not set (fund a Tempo testnet wallet)')
+    console.error(`AGENT_PRIVATE_KEY not set (fund a Tempo ${isMainnet ? 'MAINNET wallet with real USDC.e' : 'testnet wallet'})`)
     process.exit(2)
   }
 
@@ -62,7 +62,7 @@ async function cmdInfer(prompt: string, flags: Record<string, unknown>) {
         if (!json) console.log('\n── pre-pay attestation gate ──\n' + formatReport(r))
       },
       onUnit: (n, paid) => {
-        if (!json) process.stdout.write(`\r  💸 [units paid: ${n} | ${paid} pathUSD]`)
+        if (!json) process.stdout.write(`\r  💸 [units paid: ${n} | ${paid} ${tempoChain.currencyName}]`)
       },
     })
 
@@ -87,7 +87,7 @@ async function cmdInfer(prompt: string, flags: Record<string, unknown>) {
       console.log('\n── post-pay receipt verification ──\n' + formatReport(res.attestation.postPay))
     }
     console.log('\n🔓 decrypted answer (plaintext only ever seen by you + the attested enclave):\n' + res.answer)
-    console.log(`\n(${res.units} units · ${res.paid} pathUSD)`)
+    console.log(`\n(${res.units} units · ${res.paid} ${tempoChain.currencyName})`)
   } catch (e) {
     if (e instanceof AttestationError) {
       console.error('⛔ ' + e.message + '\n' + formatReport(e.report))

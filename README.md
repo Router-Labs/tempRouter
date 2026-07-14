@@ -150,8 +150,8 @@ Environment variables (see [`.env.example`](.env.example)):
 |---|---|---|---|
 | `TEE_ENDPOINT` | No | — | Phala TDX base URL (`…/tee`). Unset → stub mode. |
 | `NETWORK` | No | `testnet` | `testnet` (Moderato 42431) or `mainnet` (Allegro 4217). |
-| `MPP_SECRET_KEY` | Yes | — | HMAC secret for challenge binding (not a chain key). |
-| `TEMPO_RECIPIENT` | Yes | — | Wallet address receiving stablecoin payments. |
+| `MPP_SECRET_KEY` | Yes | — | HMAC secret for challenge binding (not a chain key). Mainnet: ≥24 chars, placeholders refused at boot. |
+| `TEMPO_RECIPIENT` | Yes | — | Wallet address receiving stablecoin payments. Mainnet: must be a valid, non-demo address (boot guard). |
 | `TEMPO_RECIPIENT_PRIVATE_KEY` | No | — | Payee key for cooperative channel close. |
 | `PRICE_PER_UNIT` | No | `0.0002` | Stablecoin per response-chunk. |
 | `CHUNK_COUNT` | No | `1` | SSE chunks per inference (metering granularity). |
@@ -229,8 +229,19 @@ decrypt to plaintext answer.`
 - ✅ Multi-unit streaming supported (`CHUNK_COUNT > 1`); prod bills one charge per inference
 - ✅ Cooperative `manager.close()` settles on-chain as the payee
 
+**🛡️ Mainnet readiness VERIFIED on the hardening branch (2026-07-14, PR #3):**
+
+- ✅ `NETWORK=mainnet` boot serves Allegro (chain 4217, USDC.e) consistently on `/`, `/llms.txt`, `/SKILL.md`, `/openapi.json`; testnet behavior unchanged
+- ✅ Fail-closed boot guards: demo recipient, placeholder/short `MPP_SECRET_KEY`, payee-key mismatch, invalid recipient address — all refuse to boot on mainnet; unknown `NETWORK` values crash instead of silently running testnet
+- ✅ Chain facts verified against live RPC + official tokenlist (chainId `4217`, USDC.e `0x20C0…8b50`, 6 dp)
+- ✅ Staging E2E on the branch: real enclave (`tdx-live`), paid run, **first on-chain cooperative close** (see [evidence.md](evidence.md), staging-run section)
+- ⏳ Cutover pending: mainnet env on the deployed service + explicit deploy (the service has never auto-deployed on push — deploy explicitly) + pricing decision below
+
 ## TODO
 
+- [ ] **Fix session economics before mainnet** — close fee (~0.0006) > per-session revenue (0.0002 × 1 chunk): raise `PRICE_PER_UNIT`, meter more chunks, or batch settlement (mppx `settlementSchedule`)
+- [ ] **Persistent voucher store** — `Store.memory()` loses unsettled vouchers on restart (real revenue on mainnet); wire an mppx redis/upstash store
+- [ ] **Mainnet cutover** — set mainnet env on the deployed service (see `.env.example` Mainnet notes) + explicit deploy + small real-money E2E
 - [ ] **List on MPPScan** — register at https://www.mppscan.com/register (instant, ~2 min)
 - [ ] **List on mpp.dev/services** — open PR to `quiknode-labs/mpp-dev-official-docs` (see [DISCOVERY.md](docs/DISCOVERY.md))
 - [ ] **Add GitHub topics** — `mpp`, `ai-inference`, `tee`, `intel-tdx`, `privacy`, `stablecoins`, `agents`
