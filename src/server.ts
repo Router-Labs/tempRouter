@@ -16,7 +16,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { privateKeyToAccount } from 'viem/accounts'
 import { z } from 'zod'
-import { config, resolveMode, tempoChain, isMainnet, type PrivacyMode } from './config.js'
+import { config, resolveMode, tempoChain, isMainnet, DEV_SECRET_KEY, DEV_RECIPIENT, type PrivacyMode } from './config.js'
 import { teeProcess, fetchAttestation, fetchTeePublicKeyRaw, chunk } from './upstream.js'
 import { log } from './logger.js'
 
@@ -41,8 +41,36 @@ const ContentBody = z.object({
 // timeout (ADR-0003). NB: do NOT set `feePayer: true` — that makes the server sponsor
 // the PAYER's channel-open tx, which trips Tempo's sponsor maxFeePerGas policy.
 const settlementAccount = config.recipientPrivateKey ? privateKeyToAccount(config.recipientPrivateKey) : undefined
-if (settlementAccount && config.recipient.toLowerCase() !== settlementAccount.address.toLowerCase())
-  log.warn('recipient_mismatch', { recipient: config.recipient, settlementAccount: settlementAccount.address })
+const recipientMismatch = settlementAccount
+  ? config.recipient.toLowerCase() !== settlementAccount.address.toLowerCase()
+  : false
+if (recipientMismatch)
+  log.warn('recipient_mismatch', { recipient: config.recipient, settlementAccount: settlementAccount?.address })
+
+// ── Mainnet safety gate — fail closed, real USDC.e must never ride dev defaults ──
+// On testnet the fallbacks are a convenience; on mainnet the same fallbacks would
+// settle real money to the demo address / verify challenges with a public secret,
+// and a recipient/key mismatch makes every cooperative close fail the on-chain
+// payee check (mppx Settlement) — silently, per request. Refuse to boot instead.
+if (isMainnet) {
+  const fatal = (reason: string, extra: Record<string, unknown> = {}) => {
+    log.error('mainnet_guard', { reason, ...extra })
+    process.exit(1)
+  }
+  if (config.recipient.toLowerCase() === DEV_RECIPIENT.toLowerCase())
+    fatal('TEMPO_RECIPIENT is the built-in demo address — set your own mainnet earnings address')
+  if (config.secretKey === DEV_SECRET_KEY)
+    fatal('MPP_SECRET_KEY is the insecure dev default — set a long random secret')
+  if (recipientMismatch)
+    fatal('TEMPO_RECIPIENT_PRIVATE_KEY address does not match TEMPO_RECIPIENT — every cooperative close would fail on-chain', {
+      recipient: config.recipient,
+      settlementAccount: settlementAccount?.address,
+    })
+  if (!settlementAccount)
+    log.warn('mainnet_no_payee_key', {
+      hint: 'cooperative close disabled — unsettled revenue reclaims to payers on channel timeout (ADR-0003); set TEMPO_RECIPIENT_PRIVATE_KEY',
+    })
+}
 
 const mppx = Mppx.create({
   methods: [
@@ -237,13 +265,51 @@ app.get('/openapi.json', (c) => {
   })
 })
 
-app.get('/llms.txt', (c) => {
-  try {
-    return c.text(readFileSync(new URL('../public/llms.txt', import.meta.url), 'utf8'))
-  } catch {
-    return c.text('# tempRouter\nAttestation-gated private AI inference paid per response-chunk in pathUSD on Tempo.\n')
-  }
-})
+// Agent-readable context, generated per-network so discovery can never contradict the
+// 402 challenge / openapi.json. (public/llms.txt is a static snapshot for the repo/Pages;
+// this route — not the file — is what paying agents read.)
+const NETWORK_LABEL = isMainnet ? 'Tempo mainnet' : 'Tempo Moderato testnet'
+const MONEY_LINE = isMainnet
+  ? 'REAL MONEY — every response-chunk settles in USDC.e on mainnet.'
+  : 'Testnet only — not mainnet, no real money.'
+app.get('/llms.txt', (c) =>
+  c.text(`# tempRouter
+
+> A payable, end-to-end-encrypted LLM inference endpoint on MPP — pay per response-chunk in ${tempoChain.currencyName} on ${NETWORK_LABEL}.
+
+tempRouter is an MPP-payable endpoint for **confidential** LLM inference. An agent
+pays per response-chunk in ${tempoChain.currencyName} over an MPP session — but only after it
+cryptographically verifies (Intel DCAP) that inference runs inside a real Phala
+Intel TDX enclave that cannot read the prompt. The relay is blind: it forwards
+only ciphertext and never holds a decryption key.
+
+## When to use
+Use tempRouter when the prompt contains secrets, credentials, PII, or other
+confidential data that must never reach a third-party model host. For non-sensitive
+work, use a normal (cheaper / more capable) public model — the private lane runs an
+OSS model (gpt-oss:20b) in the enclave.
+
+## Flow (agent)
+1. GET /tee/attestation → verify the TDX quote (DCAP) BEFORE paying.
+2. Encrypt the prompt to the enclave key (Arcium RescueCipher + X25519).
+3. POST /v1/chat/completions/stream with {encryptedPrompt, model}.
+   - 402 → open an MPP session (${NETWORK_LABEL}, chain ${tempoChain.chainId}), pay per chunk.
+   - 200 → SSE stream of ciphertext chunks (one MPP voucher tick each) + a final receipt frame.
+4. Reassemble + decrypt locally.
+
+## Payment
+- Network: ${NETWORK_LABEL} (chain ${tempoChain.chainId}), currency ${tempoChain.currencyName} (${tempoChain.decimals} decimals). ${MONEY_LINE}
+- Price: ${config.pricePerUnit} ${tempoChain.currencyName} per response-chunk.
+- Model: MPP \`tempo\` session intent, unitType \`response-chunk\`.
+- Discovery: GET /openapi.json (x-service-info + x-payment-info) — the 402 challenge is authoritative.
+- Entrypoint: GET /SKILL.md — agent skill (install: \`npx skills add Router-Labs/tempRouter\`).
+
+## Verified runs
+Three real Tempo Moderato testnet runs (each tripping a different detector) are linked on the
+landing page (#verified): openai-key, email/PII, and hex-private-key — each settled at 0.0002 pathUSD.
+The enclave key is attached to the MPP session as a settlement label, not an enforced gate.
+`),
+)
 
 // Crawler/agent discoverability: robots + /.well-known aliases for the discovery surfaces.
 app.get('/robots.txt', (c) => {
@@ -258,13 +324,19 @@ app.get('/.well-known/openapi.json', (c) => c.redirect('/openapi.json'))
 app.get('/.well-known/skill.md', (c) => c.redirect('/SKILL.md'))
 
 // ── Agent skill entrypoint (installable: `npx skills add Router-Labs/tempRouter`) ──
+// The repo file is network-neutral; stamp the live network under the H1 so an agent
+// reading the served copy knows exactly which chain/currency THIS deployment charges.
+const SKILL_HEADING = '# tempRouter — payable confidential inference (entrypoint)'
+const SKILL_NET_BANNER = `> **Live network:** ${NETWORK_LABEL} (chain \`${tempoChain.chainId}\`), currency **${tempoChain.currencyName}**. ${MONEY_LINE}`
 const serveSkill = (c: any) => {
   try {
-    return c.text(readFileSync(new URL('../skills/temprouter/SKILL.md', import.meta.url), 'utf8'), 200, {
+    const raw = readFileSync(new URL('../skills/temprouter/SKILL.md', import.meta.url), 'utf8')
+    const stamped = raw.includes(SKILL_HEADING) ? raw.replace(SKILL_HEADING, `${SKILL_HEADING}\n\n${SKILL_NET_BANNER}`) : raw
+    return c.text(stamped, 200, {
       'content-type': 'text/markdown; charset=utf-8',
     })
   } catch {
-    return c.text('# tempRouter\nPayable, E2E-encrypted LLM inference on MPP. See /llms.txt + /openapi.json.\n')
+    return c.text(`# tempRouter\nPayable, E2E-encrypted LLM inference on MPP, per response-chunk in ${tempoChain.currencyName}. See /llms.txt + /openapi.json.\n`)
   }
 }
 // Canonical path + the common variants a human or agent might try.

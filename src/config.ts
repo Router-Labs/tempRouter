@@ -8,11 +8,15 @@ try {
   /* no .env — use process env / defaults */
 }
 
+// Dev-only fallbacks. Fine on testnet; the server refuses to boot on mainnet with
+// either still in effect (see the mainnet safety gate in server.ts).
+export const DEV_SECRET_KEY = 'dev-insecure-secret-change-me'
+export const DEV_RECIPIENT = '0xa726a1CD723409074DF9108A2187cfA19899aCF8' as `0x${string}`
+
 export const config = {
   port: Number(process.env.PORT ?? 8402),
-  secretKey: process.env.MPP_SECRET_KEY ?? 'dev-insecure-secret-change-me',
-  recipient: (process.env.TEMPO_RECIPIENT ??
-    '0xa726a1CD723409074DF9108A2187cfA19899aCF8') as `0x${string}`,
+  secretKey: process.env.MPP_SECRET_KEY ?? DEV_SECRET_KEY,
+  recipient: (process.env.TEMPO_RECIPIENT ?? DEV_RECIPIENT) as `0x${string}`,
 
   // Pricing (decimal token units; TIP-20 stablecoins use 6 decimals).
   pricePerUnit: process.env.PRICE_PER_UNIT ?? '0.0002', // per response-chunk (session/SSE)
@@ -52,7 +56,7 @@ export const tempoMainnet = {
   rpcUrl: 'https://rpc.tempo.xyz',
   explorer: 'https://explore.tempo.xyz',
   currency: '0x20C000000000000000000000b9537d11c60E8b50' as `0x${string}`, // USDC.e
-  currencyName: 'USDC',
+  currencyName: 'USDC.e', // on-chain symbol() of the bridged-USDC TIP-20 predeploy
   decimals: 6,
 } as const
 

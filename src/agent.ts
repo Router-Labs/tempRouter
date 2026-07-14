@@ -3,7 +3,7 @@
 // Fail-closed: a failed attestation gate signs ZERO vouchers (ADR-0002).
 
 import { TempRouter, detectSensitive, formatReport, AttestationError } from '../sdk/src/index.js'
-import { config } from './config.js'
+import { config, tempoChain, isMainnet } from './config.js'
 
 const MODEL = process.env.MODEL ?? 'nosana:gpt-oss:20b'
 // Default demo prompt carries a (fake) leaked credential → forces the private lane.
@@ -24,7 +24,11 @@ async function main() {
   }
 
   if (!config.agentPrivateKey) {
-    console.error('\nAGENT_PRIVATE_KEY not set — fund a Tempo testnet key to run the paid stream (faucet: https://explore.testnet.tempo.xyz).')
+    console.error(
+      isMainnet
+        ? '\nAGENT_PRIVATE_KEY not set — fund a Tempo MAINNET wallet with real USDC.e to run the paid stream.'
+        : '\nAGENT_PRIVATE_KEY not set — fund a Tempo testnet key to run the paid stream (faucet: https://explore.testnet.tempo.xyz).',
+    )
     process.exit(2)
   }
 
@@ -40,7 +44,7 @@ async function main() {
     const res = await client.infer(PROMPT, {
       model: MODEL,
       onVerify: (r) => console.log('\n── pre-pay attestation gate ──\n' + formatReport(r)),
-      onUnit: (n, paid) => process.stdout.write(`\r  💸 [units paid: ${n} | ${paid} pathUSD]`),
+      onUnit: (n, paid) => process.stdout.write(`\r  💸 [units paid: ${n} | ${paid} ${tempoChain.currencyName}]`),
     })
     if (res.attestation.postPay) console.log('\n── post-pay receipt verification ──\n' + formatReport(res.attestation.postPay))
     console.log('\n🔓 decrypted answer (plaintext only ever seen by you + the attested enclave):\n' + res.answer)
