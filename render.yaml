@@ -15,13 +15,18 @@ services:
       # HMAC secret for binding/verifying MPP challenges. NOT a chain key.
       - key: MPP_SECRET_KEY
         generateValue: true
-      # Network: "testnet" (Moderato, chain 42431, pathUSD) or "mainnet" (Allegro, chain 4217, USDC.e)
+      # Network: "testnet" (Moderato, chain 42431, pathUSD) or "mainnet" (Allegro, chain 4217, USDC.e).
+      # Mainnet cutover is a dashboard operation: set NETWORK=mainnet there, and note the
+      # server refuses to boot on mainnet with the demo recipient or dev MPP secret
+      # (see .env.example "Mainnet notes").
       - key: NETWORK
         value: testnet
-      # Earnings address (where payments settle). Set to your wallet address.
-      # Testnet: pathUSD. Mainnet: USDC.e.
+      # Earnings address (where payments settle). Testnet: pathUSD. Mainnet: real USDC.e.
       - key: TEMPO_RECIPIENT
-        value: "0xa726a1CD723409074DF9108A2187cfA19899aCF8"
+        value: "0x4d881B146b2199dfC2598FB618eC80410B9aBD46"
+      # TEMPO_RECIPIENT_PRIVATE_KEY (payee key for cooperative close; same address as
+      # TEMPO_RECIPIENT, funded with a little USDC.e for close-tx fees) is a SECRET —
+      # set it only in the Render dashboard, never in this file.
       - key: PRICE_PER_UNIT
         value: "0.0002"
       - key: CHUNK_COUNT
