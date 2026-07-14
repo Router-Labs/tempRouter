@@ -16,14 +16,15 @@ export const DEV_RECIPIENT = '0xa726a1CD723409074DF9108A2187cfA19899aCF8' as `0x
 export const config = {
   port: Number(process.env.PORT ?? 8402),
   secretKey: process.env.MPP_SECRET_KEY ?? DEV_SECRET_KEY,
-  recipient: (process.env.TEMPO_RECIPIENT ?? DEV_RECIPIENT) as `0x${string}`,
+  recipient: (process.env.TEMPO_RECIPIENT ?? DEV_RECIPIENT).trim() as `0x${string}`,
 
   // Pricing (decimal token units; TIP-20 stablecoins use 6 decimals).
   pricePerUnit: process.env.PRICE_PER_UNIT ?? '0.0002', // per response-chunk (session/SSE)
   // How many SSE chunks the blind relay slices the enclave's single ciphertext
   // blob into — each chunk = one MPP voucher tick, so the payer's balance visibly
   // ticks per chunk. Multi-unit metering is fixed + verified end-to-end (ADR-0003).
-  // Default 1 = one charge per inference; set CHUNK_COUNT>1 to meter a response in N ticks.
+  // Default 1 = one charge per inference; CHUNK_COUNT>1 meters a response in up to N ticks
+  // (short ciphertexts produce fewer chunks — see chunk() in upstream.ts).
   chunkCount: Number(process.env.CHUNK_COUNT ?? 1),
 
   // Real Phala Intel TDX enclave (the private upstream). When unset → stub mode.
@@ -70,7 +71,12 @@ export const tempoTestnet = {
 } as const
 
 // Active chain — select via NETWORK env ("mainnet" | "testnet"), default testnet.
-export const isMainnet = process.env.NETWORK === 'mainnet'
+// Normalized (trim + lowercase) and CLOSED: any other value is a hard error instead of
+// a silent testnet fallback — a typo'd mainnet flip must fail the deploy, not no-op.
+const NETWORK = (process.env.NETWORK ?? 'testnet').trim().toLowerCase() || 'testnet'
+if (NETWORK !== 'mainnet' && NETWORK !== 'testnet')
+  throw new Error(`NETWORK must be "mainnet" or "testnet", got ${JSON.stringify(process.env.NETWORK)}`)
+export const isMainnet = NETWORK === 'mainnet'
 export const tempoChain = isMainnet ? tempoMainnet : tempoTestnet
 
 // Derived: where to fetch the enclave attestation + public key (blind passthrough).

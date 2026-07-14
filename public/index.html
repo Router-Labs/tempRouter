@@ -232,10 +232,10 @@
     <div class="bar"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i></div>
 <pre><span class="c"># the whole handshake — verify, then pay</span>
 $ agent → <span class="s">POST /v1/chat/completions/stream</span>
-  ← <span class="k">402 Payment Required</span>   <span class="m">(mppx session · pathUSD · Tempo Moderato)</span>
+  ← <span class="k">402 Payment Required</span>   <span class="m">(mppx session · USD stablecoin · Tempo)</span>
 $ verify enclave <span class="m">(Intel DCAP)</span>     → <span class="g">✅ INTEL-TDX-PHALA · quote authentic · key bound</span>
 $ encrypt prompt → enclave key   <span class="m">(Arcium RescueCipher + X25519)</span>
-$ pay + retry                    → <span class="k">200 OK</span> · SSE ciphertext · <span class="g">💸 0.0002 pathUSD</span>
+$ pay + retry                    → <span class="k">200 OK</span> · SSE ciphertext · <span class="g">💸 0.0002 stablecoin</span>
 $ decrypt locally                → <span class="g">plaintext — seen only by you + the enclave</span></pre>
   </div>
 </div></div>
@@ -304,7 +304,7 @@ $ decrypt locally                → <span class="g">plaintext — seen only by 
 <section id="verified" class="reveal"><div class="wrap">
   <span class="label">Verified on-chain</span>
   <h2>Real prompts, real receipts<span class="period">.</span></h2>
-  <p class="lede">Every run settles on Tempo testnet — inspect the transaction, verify the ciphertext hash, and confirm the payment yourself.</p>
+  <p class="lede">These recorded runs settled on Tempo Moderato testnet — inspect the transaction, verify the ciphertext hash, and confirm the payment yourself.</p>
   <div class="grid">
     <div class="card">
       <div class="tag">🔒 detected: openai-key</div>
@@ -419,7 +419,8 @@ tempo request <span class="s">https://temprouter.onrender.com/v1/chat/completion
     <a href="/llms.txt">/llms.txt</a>
     <a href="/openapi.json">/openapi.json</a>
     <a href="https://mpp.dev/services">mpp.dev/services</a>
-    <a href="https://explore.testnet.tempo.xyz">Tempo explorer</a>
+    <a href="https://explore.tempo.xyz">Tempo explorer</a>
+    <a href="https://explore.testnet.tempo.xyz">Tempo testnet explorer</a>
     <a href="https://solrouter.com">SolRouter</a>
   </div>
   <div class="fine">Router Labs · built on MPP + Tempo + Phala Intel TDX<span class="period">.</span></div>

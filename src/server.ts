@@ -14,6 +14,7 @@ import { cors } from 'hono/cors'
 import { Mppx, tempo, Store } from 'mppx/server'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
+import { isAddress } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { z } from 'zod'
 import { config, resolveMode, tempoChain, isMainnet, DEV_SECRET_KEY, DEV_RECIPIENT, type PrivacyMode } from './config.js'
@@ -57,10 +58,15 @@ if (isMainnet) {
     log.error('mainnet_guard', { reason, ...extra })
     process.exit(1)
   }
+  if (!isAddress(config.recipient))
+    fatal('TEMPO_RECIPIENT is not a valid address — set your mainnet earnings address', { recipient: config.recipient })
   if (config.recipient.toLowerCase() === DEV_RECIPIENT.toLowerCase())
     fatal('TEMPO_RECIPIENT is the built-in demo address — set your own mainnet earnings address')
-  if (config.secretKey === DEV_SECRET_KEY)
-    fatal('MPP_SECRET_KEY is the insecure dev default — set a long random secret')
+  // Known public placeholders (code default + the .env.example template) and anything
+  // short enough to brute-force: challenge provenance is HMAC-SHA256 over this secret.
+  const KNOWN_SECRETS = [DEV_SECRET_KEY, 'change-me-to-a-long-random-string']
+  if (KNOWN_SECRETS.includes(config.secretKey) || config.secretKey.trim().length < 24)
+    fatal('MPP_SECRET_KEY is a known placeholder or shorter than 24 chars — set a long random secret')
   if (recipientMismatch)
     fatal('TEMPO_RECIPIENT_PRIVATE_KEY address does not match TEMPO_RECIPIENT — every cooperative close would fail on-chain', {
       recipient: config.recipient,
@@ -304,9 +310,10 @@ OSS model (gpt-oss:20b) in the enclave.
 - Discovery: GET /openapi.json (x-service-info + x-payment-info) — the 402 challenge is authoritative.
 - Entrypoint: GET /SKILL.md — agent skill (install: \`npx skills add Router-Labs/tempRouter\`).
 
-## Verified runs
-Three real Tempo Moderato testnet runs (each tripping a different detector) are linked on the
-landing page (#verified): openai-key, email/PII, and hex-private-key — each settled at 0.0002 pathUSD.
+## Verified runs (historical, Tempo Moderato testnet)
+Three recorded testnet-era runs (each tripping a different detector) are linked on the
+landing page (#verified): openai-key, email/PII, and hex-private-key — each settled at
+0.0002 pathUSD on Moderato. The CURRENT network/currency is stated under Payment above.
 The enclave key is attached to the MPP session as a settlement label, not an enforced gate.
 `),
 )
@@ -331,7 +338,15 @@ const SKILL_NET_BANNER = `> **Live network:** ${NETWORK_LABEL} (chain \`${tempoC
 const serveSkill = (c: any) => {
   try {
     const raw = readFileSync(new URL('../skills/temprouter/SKILL.md', import.meta.url), 'utf8')
-    const stamped = raw.includes(SKILL_HEADING) ? raw.replace(SKILL_HEADING, `${SKILL_HEADING}\n\n${SKILL_NET_BANNER}`) : raw
+    // Prefer stamping under the H1; if the heading ever drifts, fall back to after the
+    // frontmatter, then to the very top — the banner must never silently disappear.
+    let stamped: string
+    if (raw.includes(SKILL_HEADING)) {
+      stamped = raw.replace(SKILL_HEADING, `${SKILL_HEADING}\n\n${SKILL_NET_BANNER}`)
+    } else {
+      const fm = raw.match(/^---\n[\s\S]*?\n---\n/)
+      stamped = fm ? `${fm[0]}\n${SKILL_NET_BANNER}\n${raw.slice(fm[0].length)}` : `${SKILL_NET_BANNER}\n\n${raw}`
+    }
     return c.text(stamped, 200, {
       'content-type': 'text/markdown; charset=utf-8',
     })
@@ -345,7 +360,14 @@ for (const p of ['/SKILL.md', '/skill.md', '/skill', '/skills.md', '/skills']) a
 resolveMode().then((mode) => {
   MODE = mode
   const server = honoServe({ fetch: app.fetch, port: config.port }, (info) => {
-    log.info('listening', { port: info.port, mode: MODE, recipient: config.recipient })
+    log.info('listening', {
+      port: info.port,
+      mode: MODE,
+      network: isMainnet ? 'mainnet' : 'testnet',
+      chainId: tempoChain.chainId,
+      currency: tempoChain.currencyName,
+      recipient: config.recipient,
+    })
     if (MODE !== 'tdx-live')
       log.warn('no_live_tdx', { mode: MODE, hint: 'agents will (correctly) refuse to pay; set TEE_ENDPOINT for tdx-live' })
   })

@@ -1,6 +1,6 @@
 ---
 name: temprouter
-description: Call tempRouter — a payable, end-to-end-encrypted LLM inference endpoint on MPP (Tempo). Pay per inference in pathUSD stablecoin AFTER your agent verifies (Intel DCAP) that the prompt runs inside a real Phala Intel TDX enclave that can't read it. Use when a prompt holds secrets/PII (API keys sk-…, private keys 0x…, seed phrases, JWTs, passwords, customer data) that must never reach a public model host. Verify-before-pay: a failed attestation pays nothing; the relay is blind (ciphertext only).
+description: Call tempRouter — a payable, end-to-end-encrypted LLM inference endpoint on MPP (Tempo). Pay per response-chunk in the network's USD stablecoin (pathUSD on Moderato testnet · USDC.e on mainnet — check GET / → network.chainId) AFTER your agent verifies (Intel DCAP) that the prompt runs inside a real Phala Intel TDX enclave that can't read it. Use when a prompt holds secrets/PII (API keys sk-…, private keys 0x…, seed phrases, JWTs, passwords, customer data) that must never reach a public model host. Verify-before-pay: a failed attestation pays nothing; the relay is blind (ciphertext only).
 ---
 
 # tempRouter — payable confidential inference (entrypoint)
@@ -27,7 +27,7 @@ just confirms the enclave is real. Good for kicking the tires.
 temprouter infer "sanitize this key before rotation: sk-proj-abc123"
 ```
 Runs the full lane: detect → verify → encrypt → pay → stream → decrypt. Requires a
-funded Tempo wallet on the server's network (`account` env var or `--account` flag) —
+funded Tempo wallet on the server's network (`AGENT_PRIVATE_KEY` env var) —
 check `GET /` → `network.chainId` first: `42431` = Moderato testnet (pathUSD, free faucet
 money) · `4217` = mainnet (USDC.e, **real money**). Set `NETWORK=mainnet` client-side to match.
 
@@ -118,9 +118,9 @@ check `temprouter verify` output for the specific failure (cert chain, TCB level
 measurement mismatch).
 
 ### `InsufficientBalanceError`
-Your Tempo wallet doesn't have enough pathUSD to cover the first chunk voucher.
-- **Testnet:** Request funds from the Tempo testnet faucet.
-- **Mainnet:** Fund your wallet with USDC on the Tempo chain.
+Your Tempo wallet doesn't have enough of the network's stablecoin to cover the first chunk voucher.
+- **Testnet:** Request pathUSD from the Tempo testnet faucet.
+- **Mainnet:** Fund your wallet with real USDC.e on the Tempo chain.
 
 ### `EnclaveMismatchError: measurement mismatch`
 The enclave's measured measurement (`mrtd`) doesn't match `EXPECTED_MEASUREMENT` in your
