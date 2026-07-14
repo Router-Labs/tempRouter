@@ -27,7 +27,9 @@ just confirms the enclave is real. Good for kicking the tires.
 temprouter infer "sanitize this key before rotation: sk-proj-abc123"
 ```
 Runs the full lane: detect → verify → encrypt → pay → stream → decrypt. Requires a
-funded Tempo testnet wallet (`account` env var or `--account` flag).
+funded Tempo wallet on the server's network (`account` env var or `--account` flag) —
+check `GET /` → `network.chainId` first: `42431` = Moderato testnet (pathUSD, free faucet
+money) · `4217` = mainnet (USDC.e, **real money**). Set `NETWORK=mainnet` client-side to match.
 
 ### 3. Detect sensitivity (client-side, no network)
 ```bash
@@ -40,7 +42,8 @@ zero cost. Use as a pre-filter in your agent pipeline.
 ---
 
 ## What it is
-A **payable inference endpoint on MPP**: your agent pays per response-chunk in **pathUSD**
+A **payable inference endpoint on MPP**: your agent pays per response-chunk in the
+network's **USD stablecoin** (pathUSD on Moderato testnet · USDC.e on mainnet)
 on Tempo for an LLM answer that is **end-to-end encrypted** to a real **Phala Intel TDX
 enclave**. Before any money moves, the agent runs **Intel DCAP** on the live enclave quote;
 a failed check signs **zero vouchers**. tempRouter is a **blind relay** — it forwards only
@@ -67,7 +70,7 @@ import { TempRouter, detectSensitive } from '@temprouter/sdk'
 
 const client = new TempRouter({
   serverUrl: 'https://temprouter.onrender.com',
-  account: process.env.AGENT_PRIVATE_KEY as `0x${string}`, // funded Tempo testnet wallet
+  account: process.env.AGENT_PRIVATE_KEY as `0x${string}`, // funded Tempo wallet — match the server's network (NETWORK=mainnet ⇒ USDC.e)
 })
 if (detectSensitive(prompt).sensitive) {
   const { answer, units, paid } = await client.infer(prompt) // throws AttestationError on a failed gate
@@ -90,13 +93,17 @@ temprouter detect "<text>"                   # is it sensitive?
 
 | Environment | Cost | Notes |
 |---|---|---|
-| **Tempo testnet** (chain `42431`) | **Free** | pathUSD is testnet-only; no real money. Use for dev/testing. |
-| **Mainnet** (planned) | **~0.0002 USDC per chunk** | 1 chunk ≈ 1 response segment. A typical short answer = 1–3 chunks. |
+| **Tempo Moderato testnet** (chain `42431`) | **Free** (faucet pathUSD) | No real money. Use for dev/testing. |
+| **Tempo mainnet** (chain `4217`) | **0.0002 USDC.e per chunk — real money** | 1 chunk ≈ 1 response segment. A typical short answer = 1–3 chunks. |
 
+- Which network a deployment charges is its config — **verify live** via `GET /` →
+  `network.chainId`, `GET /openapi.json` → `x-payment-info`, or the served `/SKILL.md`
+  banner. The 402 challenge is authoritative.
 - There is **no subscription, no API key fee, no minimum**. You pay per chunk via an MPP
   session (SSE stream), settled in ~2 on-chain transactions.
 - The `units` field in the response tells you exactly how many chunks were charged.
-- Testnet pathUSD can be obtained from the Tempo testnet faucet.
+- Testnet pathUSD can be obtained from the Tempo testnet faucet; mainnet needs a wallet
+  funded with real USDC.e.
 
 ## Common errors & troubleshooting
 
@@ -144,7 +151,9 @@ attestation. This indicates a potential MITM or enclave swap mid-session.
 - Verification = DCAP cert-chain + key binding + enclave ed25519 signature. **Code-measurement
   pinning is opt-in** (`EXPECTED_MEASUREMENT`); default is soft-pin ("same enclave the service
   advertised"), not "trusted reproducible build."
-- Currently **Tempo Moderato testnet** (chain `42431`), currency **pathUSD**; one charge per inference.
+- Network is deployment config — **Moderato testnet** (chain `42431`, pathUSD) or **mainnet**
+  (chain `4217`, USDC.e, real money). Check `GET /` → `network.chainId` before funding a wallet;
+  one charge per inference by default.
 
 ## Install this skill
 ```bash

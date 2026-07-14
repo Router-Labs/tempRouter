@@ -1,9 +1,12 @@
 # tempRouter
 
-> A payable, end-to-end-encrypted LLM inference endpoint on MPP — pay per response-chunk in pathUSD on Tempo (Moderato testnet).
+> A payable, end-to-end-encrypted LLM inference endpoint on MPP — pay per response-chunk
+> in a USD stablecoin on Tempo (pathUSD on Moderato testnet · USDC.e on mainnet).
+> This file is the static snapshot; GET /llms.txt on the live endpoint states the
+> deployment's actual network and is authoritative.
 
 tempRouter is an MPP-payable endpoint for **confidential** LLM inference. An agent
-pays per response-chunk in pathUSD over an MPP session — but only after it
+pays per response-chunk in the network's stablecoin over an MPP session — but only after it
 cryptographically verifies (Intel DCAP) that inference runs inside a real Phala
 Intel TDX enclave that cannot read the prompt. The relay is blind: it forwards
 only ciphertext and never holds a decryption key.
@@ -18,13 +21,15 @@ OSS model (gpt-oss:20b) in the enclave.
 1. GET /tee/attestation → verify the TDX quote (DCAP) BEFORE paying.
 2. Encrypt the prompt to the enclave key (Arcium RescueCipher + X25519).
 3. POST /v1/chat/completions/stream with {encryptedPrompt, model}.
-   - 402 → open an MPP session (Tempo Moderato, chain 42431), pay per chunk.
+   - 402 → open an MPP session on the deployment's Tempo network (chain 42431 testnet · 4217 mainnet), pay per chunk.
    - 200 → SSE stream of ciphertext chunks (one MPP voucher tick each) + a final receipt frame.
 4. Reassemble + decrypt locally.
 
 ## Payment
-- Network: Tempo Moderato testnet (chain 42431), currency pathUSD (6 decimals). Testnet only — not mainnet, no real money.
-- Price: 0.0002 pathUSD per response-chunk.
+- Network: per deployment — Tempo Moderato testnet (chain 42431, pathUSD, no real money)
+  or Tempo mainnet (chain 4217, USDC.e, REAL MONEY). Both use 6 decimals. Check
+  GET / → network.chainId; the 402 challenge is authoritative.
+- Price: 0.0002 stablecoin units per response-chunk (see the live /llms.txt or /openapi.json).
 - Model: MPP `tempo` session intent, unitType `response-chunk`.
 - Discovery: GET /openapi.json (x-service-info + x-payment-info).
 - Entrypoint: GET /SKILL.md — agent skill (install: `npx skills add Router-Labs/tempRouter`).

@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>" />
 <title>tempRouter — payable, end-to-end-encrypted LLM inference on MPP</title>
-<meta name="description" content="A payable inference endpoint on MPP (Tempo). Pay per response-chunk in pathUSD after your agent verifies a real Intel TDX enclave with Intel DCAP — end-to-end encrypted, the relay is blind. Drop-in via SDK, CLI, MCP, or agent skill." />
+<meta name="description" content="A payable inference endpoint on MPP (Tempo). Pay per response-chunk in USD stablecoin after your agent verifies a real Intel TDX enclave with Intel DCAP — end-to-end encrypted, the relay is blind. Drop-in via SDK, CLI, MCP, or agent skill." />
 <link rel="canonical" href="https://temprouter.onrender.com/" />
 <!-- Agent / registry discovery surfaces -->
 <link rel="service-desc" type="application/json" href="/openapi.json" title="MPP / OpenAPI discovery" />
@@ -16,21 +16,21 @@
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="tempRouter" />
 <meta property="og:title" content="tempRouter — payable, E2E-encrypted LLM inference on MPP" />
-<meta property="og:description" content="Pay an LLM in pathUSD only after your agent proves (Intel DCAP) it runs inside a real Intel TDX enclave that can't read the prompt." />
+<meta property="og:description" content="Pay an LLM in USD stablecoin only after your agent proves (Intel DCAP) it runs inside a real Intel TDX enclave that can't read the prompt." />
 <meta property="og:url" content="https://temprouter.onrender.com/" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="tempRouter — payable, E2E-encrypted LLM inference on MPP" />
-<meta name="twitter:description" content="Verify a real Intel TDX enclave, then pay per response-chunk in pathUSD. End-to-end encrypted; the relay is blind." />
+<meta name="twitter:description" content="Verify a real Intel TDX enclave, then pay per response-chunk in USD stablecoin. End-to-end encrypted; the relay is blind." />
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebAPI",
   "name": "tempRouter",
-  "description": "Payable, end-to-end-encrypted LLM inference on MPP (Tempo). Verify a real Intel TDX enclave with Intel DCAP, then pay per response-chunk in pathUSD.",
+  "description": "Payable, end-to-end-encrypted LLM inference on MPP (Tempo). Verify a real Intel TDX enclave with Intel DCAP, then pay per response-chunk in USD stablecoin (pathUSD testnet · USDC.e mainnet).",
   "url": "https://temprouter.onrender.com/",
   "documentation": "https://temprouter.onrender.com/llms.txt",
   "provider": { "@type": "Organization", "name": "Router Labs", "url": "https://github.com/Router-Labs" },
-  "offers": { "@type": "Offer", "price": "0.0002", "priceCurrency": "pathUSD", "description": "per response-chunk, MPP session on Tempo" }
+  "offers": { "@type": "Offer", "price": "0.0002", "priceCurrency": "USD", "description": "per response-chunk, MPP session on Tempo (pathUSD testnet · USDC.e mainnet)" }
 }
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -214,7 +214,7 @@
 <div class="hero"><div class="wrap">
   <span class="label">Payable inference · MPP · Tempo · Phala Intel TDX</span>
   <h1>Pay an LLM only after you<br/>prove it never saw your prompt<span class="period">.</span></h1>
-  <p class="sub">tempRouter is a <b>payable inference endpoint on MPP</b>. Your agent verifies, with Intel DCAP, that the prompt runs inside a <b>real Intel TDX enclave</b> that can't read it — then pays per response-chunk in <b>pathUSD</b> on Tempo. End-to-end encrypted; the relay is blind. Ships as an <b>SDK, CLI, MCP server, and agent skill</b>.</p>
+  <p class="sub">tempRouter is a <b>payable inference endpoint on MPP</b>. Your agent verifies, with Intel DCAP, that the prompt runs inside a <b>real Intel TDX enclave</b> that can't read it — then pays per response-chunk in <b>USD stablecoin</b> on Tempo (pathUSD testnet · USDC.e mainnet). End-to-end encrypted; the relay is blind. Ships as an <b>SDK, CLI, MCP server, and agent skill</b>.</p>
   <div class="badges">
     <span class="pill accent"><span class="d">●</span> no API key · no signup</span>
     <span class="pill"><span class="d">●</span> verify-before-pay</span>
@@ -249,7 +249,7 @@ $ decrypt locally                → <span class="g">plaintext — seen only by 
     <div class="card"><h3><span class="ico" aria-hidden="true"></span>Two-phase attestation</h3><p>Pre-pay: genuine TDX + UpToDate TCB + key binding + code measurement. Post-pay receipt: enclave ed25519 over the exact ciphertext. Every check is auditable on the wire.</p></div>
     <div class="card p"><h3><span class="ico" aria-hidden="true"></span>Blind relay</h3><p>The prompt is E2E-encrypted (Arcium RescueCipher + X25519) to a key that only exists inside the enclave. tempRouter holds no key and never sees plaintext — it forwards ciphertext.</p></div>
     <div class="card p"><h3><span class="ico" aria-hidden="true"></span>Client-side secret policy</h3><p>Your agent detects API keys, private keys, JWTs and PII locally and forces the private lane — the only correct place, since a blind relay can't classify what it can't read.</p></div>
-    <div class="card"><h3><span class="ico" aria-hidden="true"></span>Per-chunk MPP metering</h3><p>An MPP <code>session</code> over SSE: pay per response-chunk in pathUSD, settled in ~2 on-chain txs. One charge per inference by default; multi-chunk metering supported.</p></div>
+    <div class="card"><h3><span class="ico" aria-hidden="true"></span>Per-chunk MPP metering</h3><p>An MPP <code>session</code> over SSE: pay per response-chunk in the network's USD stablecoin, settled in ~2 on-chain txs. One charge per inference by default; multi-chunk metering supported.</p></div>
     <div class="card"><h3><span class="ico" aria-hidden="true"></span>Discoverable + payable</h3><p>OpenAI-shaped request, MPP 402 flow, and a machine-readable discovery doc so any agent or registry (mpp.dev/services, MPPScan) can find and pay the endpoint.</p></div>
   </div>
 </div></section>
@@ -334,7 +334,7 @@ $ decrypt locally                → <span class="g">plaintext — seen only by 
     <li><b>Detect</b> — your agent's policy flags a secret/PII payload and forces the private lane. Non-sensitive prompts go to any public model (out of scope).</li>
     <li><b>Verify</b> — <code>GET /tee/attestation</code>, run Intel DCAP on the quote. Fail → sign zero vouchers, refuse to pay.</li>
     <li><b>Encrypt</b> — encrypt the prompt to the enclave's X25519 key. Plaintext never leaves the agent.</li>
-    <li><b>Pay</b> — <code>POST /v1/chat/completions/stream</code> → 402 → open an MPP session on Tempo, pay per response-chunk in pathUSD.</li>
+    <li><b>Pay</b> — <code>POST /v1/chat/completions/stream</code> → 402 → open an MPP session on Tempo, pay per response-chunk in the network's stablecoin.</li>
     <li><b>Decrypt</b> — reassemble the ciphertext chunks and decrypt locally. Only the agent and the attested enclave ever see plaintext.</li>
   </ol>
 </div></section>
@@ -374,8 +374,8 @@ $ temprouter infer <span class="s">"rotate this leaked sk-proj-… key — exact
   <h2>Speak MPP, get inference<span class="period">.</span></h2>
   <p class="lede">All four surfaces speak the same wire protocol. Any MPP-speaking agent can hit it directly — the 402 handshake handles pay → retry.</p>
   <div class="endpoint">
-    <div class="top"><span class="verb">POST</span><span class="path">/v1/chat/completions/stream</span><span class="meta">0.0002 pathUSD / response-chunk</span></div>
-    <div class="desc">Attested confidential inference, metered per response-chunk over an MPP session (SSE). MPP <code>tempo</code> intent <code>session</code>, currency pathUSD, network Tempo Moderato (chain&nbsp;42431).</div>
+    <div class="top"><span class="verb">POST</span><span class="path">/v1/chat/completions/stream</span><span class="meta">0.0002 stablecoin / response-chunk</span></div>
+    <div class="desc">Attested confidential inference, metered per response-chunk over an MPP session (SSE). MPP <code>tempo</code> intent <code>session</code>; network &amp; currency per deployment (Moderato testnet · pathUSD, chain&nbsp;42431 — or mainnet · USDC.e, chain&nbsp;4217) — see <code>GET /</code> or <code>/openapi.json</code>.</div>
   </div>
   <div class="endpoint">
     <div class="top"><span class="verb get">GET</span><span class="path">/tee/attestation</span><span class="meta">free · verify before you pay</span></div>
@@ -407,7 +407,7 @@ tempo request <span class="s">https://temprouter.onrender.com/v1/chat/completion
     <div><span class="ok">✓</span><span><b>Measurement.</b> <code>mrtd</code>/<code>rtmr</code> compared to the boot-advertised value (soft-pin); strict-pin opt-in.</span></div>
     <div><span class="ok">✓</span><span><b>Fail-closed.</b> Any failure → zero vouchers signed, no payment, by construction.</span></div>
   </div>
-  <p class="note"><b>Honest scope:</b> the private lane runs an OSS model (gpt-oss:20b) inside the enclave — use it for confidential payloads, not as a frontier-model replacement. Verification covers DCAP cert-chain + key binding + enclave signature; code-measurement pinning is opt-in. The enclave key is attached to the MPP session as a settlement <em>label</em>, not an enforced gate. Currently Tempo Moderato testnet, pathUSD.</p>
+  <p class="note"><b>Honest scope:</b> the private lane runs an OSS model (gpt-oss:20b) inside the enclave — use it for confidential payloads, not as a frontier-model replacement. Verification covers DCAP cert-chain + key binding + enclave signature; code-measurement pinning is opt-in. The enclave key is attached to the MPP session as a settlement <em>label</em>, not an enforced gate. Network per deployment — Moderato testnet (pathUSD) or mainnet (USDC.e, real money); <code>GET /</code> reports the live chain.</p>
 </div></section>
 
 </main>
