@@ -1,37 +1,37 @@
 ---
-name: temprouter
-description: Call tempRouter — a payable, end-to-end-encrypted LLM inference endpoint on MPP (Tempo). Pay per inference in pathUSD stablecoin AFTER your agent verifies (Intel DCAP) that the prompt runs inside a real Phala Intel TDX enclave that can't read it. Use when a prompt holds secrets/PII (API keys sk-…, private keys 0x…, seed phrases, JWTs, passwords, customer data) that must never reach a public model host. Verify-before-pay: a failed attestation pays nothing; the relay is blind (ciphertext only).
+name: mpprouter
+description: Call mppRouter — a payable, end-to-end-encrypted LLM inference endpoint on MPP (Tempo). Pay per inference in pathUSD stablecoin AFTER your agent verifies (Intel DCAP) that the prompt runs inside a real Phala Intel TDX enclave that can't read it. Use when a prompt holds secrets/PII (API keys sk-…, private keys 0x…, seed phrases, JWTs, passwords, customer data) that must never reach a public model host. Verify-before-pay: a failed attestation pays nothing; the relay is blind (ciphertext only).
 ---
 
-# tempRouter — payable confidential inference (entrypoint)
+# mppRouter — payable confidential inference (entrypoint)
 
-**Live endpoint:** `https://temprouter.onrender.com`
+**Live endpoint:** `https://mpprouter.onrender.com`
 - `POST /v1/chat/completions/stream` — the payable inference endpoint (MPP 402 → pay → SSE)
 - `GET /tee/attestation` — enclave attestation (verify before you pay)
 - `GET /openapi.json` · `GET /llms.txt` — MPP service discovery
 
 ## Quick start
 
-Three fastest ways to try tempRouter right now:
+Three fastest ways to try mppRouter right now:
 
 ### 1. Verify-only (free, no payment)
 ```bash
-temprouter verify
-# or: curl https://temprouter.onrender.com/tee/attestation | jq
+mpprouter verify
+# or: curl https://mpprouter.onrender.com/tee/attestation | jq
 ```
 Fetches the live enclave attestation report and runs DCAP verification. Costs nothing —
 just confirms the enclave is real. Good for kicking the tires.
 
 ### 2. Single inference (end-to-end)
 ```bash
-temprouter infer "sanitize this key before rotation: sk-proj-abc123"
+mpprouter infer "sanitize this key before rotation: sk-proj-abc123"
 ```
 Runs the full lane: detect → verify → encrypt → pay → stream → decrypt. Requires a
 funded Tempo testnet wallet (`account` env var or `--account` flag).
 
 ### 3. Detect sensitivity (client-side, no network)
 ```bash
-temprouter detect "my password is hunter2 and my key is 0xdeadbeef"
+mpprouter detect "my password is hunter2 and my key is 0xdeadbeef"
 # → { sensitive: true, matched: ["password", "private-key"] }
 ```
 Pure local check — classifies whether a prompt needs the private lane. Zero network,
@@ -43,7 +43,7 @@ zero cost. Use as a pre-filter in your agent pipeline.
 A **payable inference endpoint on MPP**: your agent pays per response-chunk in **pathUSD**
 on Tempo for an LLM answer that is **end-to-end encrypted** to a real **Phala Intel TDX
 enclave**. Before any money moves, the agent runs **Intel DCAP** on the live enclave quote;
-a failed check signs **zero vouchers**. tempRouter is a **blind relay** — it forwards only
+a failed check signs **zero vouchers**. mppRouter is a **blind relay** — it forwards only
 ciphertext and never holds a key, so plaintext is seen only by your agent and the enclave.
 
 ## When to use
@@ -63,10 +63,10 @@ Pick a surface; all run the same dance (**verify → encrypt → pay per chunk �
 
 ### SDK
 ```ts
-import { TempRouter, detectSensitive } from '@temprouter/sdk'
+import { MppRouter, detectSensitive } from '@mpprouter/sdk'
 
-const client = new TempRouter({
-  serverUrl: 'https://temprouter.onrender.com',
+const client = new MppRouter({
+  serverUrl: 'https://mpprouter.onrender.com',
   account: process.env.AGENT_PRIVATE_KEY as `0x${string}`, // funded Tempo testnet wallet
 })
 if (detectSensitive(prompt).sensitive) {
@@ -76,9 +76,9 @@ if (detectSensitive(prompt).sensitive) {
 
 ### CLI
 ```bash
-temprouter infer "<prompt>" [--model <m>]   # verify → pay → decrypt
-temprouter verify                            # pre-pay gate only (free, no payment)
-temprouter detect "<text>"                   # is it sensitive?
+mpprouter infer "<prompt>" [--model <m>]   # verify → pay → decrypt
+mpprouter verify                            # pre-pay gate only (free, no payment)
+mpprouter detect "<text>"                   # is it sensitive?
 ```
 
 ### MCP (local stdio — encryption + wallet stay in your process)
@@ -107,7 +107,7 @@ The enclave quote didn't pass Intel DCAP verification. This means either:
 - You're connecting to a spoofed endpoint
 
 **Action:** Do not pay. The SDK refuses to sign vouchers automatically. If this persists,
-check `temprouter verify` output for the specific failure (cert chain, TCB level, or
+check `mpprouter verify` output for the specific failure (cert chain, TCB level, or
 measurement mismatch).
 
 ### `InsufficientBalanceError`
@@ -118,7 +118,7 @@ Your Tempo wallet doesn't have enough pathUSD to cover the first chunk voucher.
 ### `EnclaveMismatchError: measurement mismatch`
 The enclave's measured measurement (`mrtd`) doesn't match `EXPECTED_MEASUREMENT` in your
 config. This is expected if the enclave was recently updated/redeployed.
-- If you pinned `EXPECTED_MEASUREMENT`: update it to the new value from `temprouter verify`.
+- If you pinned `EXPECTED_MEASUREMENT`: update it to the new value from `mpprouter verify`.
 - If you didn't pin: remove the env var / config key to use soft-pin mode (default).
 
 ### `SessionError: payment channel timeout`
@@ -148,6 +148,6 @@ attestation. This indicates a potential MITM or enclave swap mid-session.
 
 ## Install this skill
 ```bash
-npx skills add Router-Labs/tempRouter
+npx skills add Router-Labs/mppRouter
 ```
-Or read it live at `https://temprouter.onrender.com/SKILL.md`.
+Or read it live at `https://mpprouter.onrender.com/SKILL.md`.

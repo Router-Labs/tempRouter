@@ -1,9 +1,9 @@
-# tempRouter — Hackathon Submission
+# mppRouter — Hackathon Submission
 **MPP Hackathon @ Futura Camp Berlin 2026**
 
 ## Elevator Pitch
 
-**tempRouter** — Confidential compute behind Intel TDX, payable per chunk on Tempo. No API keys, no trust required.
+**mppRouter** — Confidential compute behind Intel TDX, payable per chunk on Tempo. No API keys, no trust required.
 
 ## Inspiration
 
@@ -11,7 +11,7 @@ SolRouter runs private AI inference inside Intel TDX enclaves on Solana — gate
 
 ## What it does
 
-tempRouter is a payable confidential compute endpoint. An agent verifies the Intel TDX enclave is genuine (Intel DCAP), encrypts its payload to the enclave's hardware key, pays per response-chunk via MPP on Tempo, and decrypts locally. The relay is blind — it forwards ciphertext, holds no key. Failed attestation = zero vouchers signed.
+mppRouter is a payable confidential compute endpoint. An agent verifies the Intel TDX enclave is genuine (Intel DCAP), encrypts its payload to the enclave's hardware key, pays per response-chunk via MPP on Tempo, and decrypts locally. The relay is blind — it forwards ciphertext, holds no key. Failed attestation = zero vouchers signed.
 
 Not just prompts — any sensitive computation that needs verifiable confidentiality: transactions, cryptographic operations, financial data processing.
 
@@ -42,7 +42,7 @@ Pay-per-use beats API keys for autonomous agents. TEE + Tempo micropayments is a
 
 ## Links
 
-- **Live:** https://temprouter.onrender.com
-- **GitHub:** https://github.com/Router-Labs/tempRouter
-- **OpenAPI:** https://temprouter.onrender.com/openapi.json
-- **Agent Skill:** https://temprouter.onrender.com/SKILL.md
+- **Live:** https://mpprouter.onrender.com
+- **GitHub:** https://github.com/Router-Labs/mppRouter
+- **OpenAPI:** https://mpprouter.onrender.com/openapi.json
+- **Agent Skill:** https://mpprouter.onrender.com/SKILL.md

@@ -6,7 +6,7 @@ import { verifyAttestation, formatReport } from '../src/verifyAttestation.js'
 
 const BASE = 'https://solrouter-obb4.onrender.com' // SDK appends /tee/public-key etc.
 const MODEL = 'nosana:gpt-oss:20b' // must match enclave signing convention (verify-attestation.mjs)
-const PROMPT = 'tempRouter fixture capture — verify the attested private lane.'
+const PROMPT = 'mppRouter fixture capture — verify the attested private lane.'
 
 const enc = await encrypt(PROMPT, BASE)
 const encryptedPrompt = packageForTEE(enc)

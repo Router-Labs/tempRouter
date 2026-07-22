@@ -1,4 +1,4 @@
-// tempRouter — MPP-paid, attestation-gated private inference on Tempo.
+// mppRouter — MPP-paid, attestation-gated private inference on Tempo.
 // Agent-only. Blind relay (ADR-0001) in front of the real Phala Intel TDX enclave.
 // Payment is native Tempo/pathUSD via mppx; the session challenge attaches the stable
 // enclave key to `meta` as a settlement LABEL (not an enforced gate — see ADR-0002 §4).
@@ -21,7 +21,7 @@ import { teeProcess, fetchAttestation, fetchTeePublicKeyRaw, chunk } from './ups
 import { log } from './logger.js'
 
 const sha256hex = (s: string) => createHash('sha256').update(s).digest('hex')
-const PROOF_SENTINEL = '__TEMPROUTER_PROOF__' // final SSE frame carrying the post-pay receipt
+const PROOF_SENTINEL = '__MPPROUTER_PROOF__' // final SSE frame carrying the post-pay receipt
 const startedAt = Date.now()
 
 // Cap the request body. The only content body is an encrypted prompt; anything past this
@@ -106,7 +106,7 @@ app.get('/', (c) => {
     }
   }
   return c.json({
-    name: 'tempRouter',
+    name: 'mppRouter',
     what: 'MPP-paid, attestation-gated private AI inference on Tempo',
     mode: MODE,
     network: { chainId: tempoChain.chainId, currency: tempoChain.currencyName, explorer: tempoChain.explorer },
@@ -214,11 +214,11 @@ app.get('/openapi.json', (c) => {
   const amountRaw = String(Math.round(Number(config.pricePerUnit) * 10 ** tempoChain.decimals))
   return c.json({
     openapi: '3.1.0',
-    info: { title: 'tempRouter', version: '0.1.0', description: `Attestation-gated private AI inference, paid per response-chunk in ${tempoChain.currencyName} on Tempo.` },
+    info: { title: 'mppRouter', version: '0.1.0', description: `Attestation-gated private AI inference, paid per response-chunk in ${tempoChain.currencyName} on Tempo.` },
     servers: [{ url: c.req.url.replace(/\/openapi\.json$/, ''), description: 'Current origin' }],
     'x-service-info': {
       categories: ['ai', 'inference', 'privacy'],
-      docs: { homepage: 'https://github.com/Router-Labs/tempRouter', llms: '/llms.txt' },
+      docs: { homepage: 'https://github.com/Router-Labs/mppRouter', llms: '/llms.txt' },
     },
     paths: {
       '/v1/chat/completions/stream': {
@@ -241,7 +241,7 @@ app.get('/llms.txt', (c) => {
   try {
     return c.text(readFileSync(new URL('../public/llms.txt', import.meta.url), 'utf8'))
   } catch {
-    return c.text('# tempRouter\nAttestation-gated private AI inference paid per response-chunk in pathUSD on Tempo.\n')
+    return c.text('# mppRouter\nAttestation-gated private AI inference paid per response-chunk in pathUSD on Tempo.\n')
   }
 })
 
@@ -257,14 +257,14 @@ app.get('/.well-known/llms.txt', (c) => c.redirect('/llms.txt'))
 app.get('/.well-known/openapi.json', (c) => c.redirect('/openapi.json'))
 app.get('/.well-known/skill.md', (c) => c.redirect('/SKILL.md'))
 
-// ── Agent skill entrypoint (installable: `npx skills add Router-Labs/tempRouter`) ──
+// ── Agent skill entrypoint (installable: `npx skills add Router-Labs/mppRouter`) ──
 const serveSkill = (c: any) => {
   try {
-    return c.text(readFileSync(new URL('../skills/temprouter/SKILL.md', import.meta.url), 'utf8'), 200, {
+    return c.text(readFileSync(new URL('../skills/mpprouter/SKILL.md', import.meta.url), 'utf8'), 200, {
       'content-type': 'text/markdown; charset=utf-8',
     })
   } catch {
-    return c.text('# tempRouter\nPayable, E2E-encrypted LLM inference on MPP. See /llms.txt + /openapi.json.\n')
+    return c.text('# mppRouter\nPayable, E2E-encrypted LLM inference on MPP. See /llms.txt + /openapi.json.\n')
   }
 }
 // Canonical path + the common variants a human or agent might try.

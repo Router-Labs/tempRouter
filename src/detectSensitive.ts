@@ -1,6 +1,6 @@
 // Client-side secret/PII detector — the privacy-routing policy (ADR-0001 consequence #2).
 // A hit FORCES the attested private lane. Runs in the agent BEFORE any bytes leave;
-// tempRouter is a blind relay and cannot classify a prompt it cannot read.
+// mppRouter is a blind relay and cannot classify a prompt it cannot read.
 //
 // Design note: this gate fails *safe* (toward privacy), but precision still matters —
 // over-firing routes ordinary prose to the slower, paid private lane and erodes the

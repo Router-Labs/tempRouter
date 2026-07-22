@@ -1,4 +1,4 @@
-# tempRouter — End-to-End Evidence
+# mppRouter — End-to-End Evidence
 
 > **An AI agent paid for, and received, attested confidential inference — with on-chain proof.**
 > A live client ran the full loop against the deployed endpoint:
@@ -11,7 +11,7 @@
 
 | | |
 |---|---|
-| **Endpoint** | `https://temprouter.onrender.com` → `POST /v1/chat/completions/stream` |
+| **Endpoint** | `https://mpprouter.onrender.com` → `POST /v1/chat/completions/stream` |
 | **Network** | Tempo Moderato **testnet**, chain `42431`, currency **pathUSD** (TIP-20, 6 dp) |
 | **Payer (agent)** | `0x9BD2B3C6dc9bDF069333EaeC42596E6d119C9f70` |
 | **Payee (service)** | `0xa726a1CD723409074DF9108A2187cfA19899aCF8` (matches `src/config.ts` `TEMPO_RECIPIENT`) |
@@ -109,7 +109,7 @@ prompt-specific content inside generated code. Consistent with `nosana:gpt-oss:2
 ## 4. End-to-end encryption — the relay is blind (proven)
 
 The prompt **and** the answer are encrypted end-to-end between the agent and the attested enclave
-(Arcium RescueCipher + X25519). tempRouter is **structurally blind**: its code has no decryption
+(Arcium RescueCipher + X25519). mppRouter is **structurally blind**: its code has no decryption
 path, holds no key, and only ever moves opaque ciphertext in both directions.
 
 **Code (verified):**
@@ -181,12 +181,12 @@ curl -s $RPC -H 'content-type: application/json' \
 ## 8. Reproduce the full run
 
 ```bash
-cd tempRouter
+cd mppRouter
 # fund a Tempo testnet key (see README), then:
-SERVER_URL=https://temprouter.onrender.com AGENT_PRIVATE_KEY=0x… npm run agent
+SERVER_URL=https://mpprouter.onrender.com AGENT_PRIVATE_KEY=0x… npm run agent
 #   → detect → DCAP verify → encrypt → open MPP channel (on-chain) → pay per chunk → decrypt
 # free attestation gate only (no payment):
-SERVER_URL=https://temprouter.onrender.com npm run cli -- verify
+SERVER_URL=https://mpprouter.onrender.com npm run cli -- verify
 ```
 
 ---

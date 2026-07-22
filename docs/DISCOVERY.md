@@ -1,10 +1,10 @@
-# Making tempRouter Discoverable
+# Making mppRouter Discoverable
 
-tempRouter is live and production-ready. This guide covers how to list it on
+mppRouter is live and production-ready. This guide covers how to list it on
 MPP/x402 catalogs so agents and developers can find it.
 
 Based on the [AgentCash merchant guide](https://agentcash.dev/merchants.md) —
-tempRouter classifies as **Branch E: Discovery + Registration Hardening** (already
+mppRouter classifies as **Branch E: Discovery + Registration Hardening** (already
 has MPP, focus on discovery and registration).
 
 ---
@@ -12,16 +12,16 @@ has MPP, focus on discovery and registration).
 ## 1. MPPScan (instant — do this first)
 
 MPPScan is the open registry for MPP-compliant services. Listing here makes
-tempRouter immediately discoverable by any MPP-speaking agent.
+mppRouter immediately discoverable by any MPP-speaking agent.
 
 **Steps:**
 
 1. Go to **https://www.mppscan.com/register**
-2. Enter the server URL: `https://temprouter.onrender.com`
+2. Enter the server URL: `https://mpprouter.onrender.com`
 3. MPPScan will auto-discover the service via the standard MPP discovery format
    (it reads `/openapi.json` and the `WWW-Authenticate` 402 challenge)
 4. Fill in any additional metadata:
-   - **Name:** tempRouter
+   - **Name:** mppRouter
    - **Description:** Payable, end-to-end-encrypted LLM inference on MPP. Verify a real Intel TDX enclave with DCAP, then pay per response-chunk in stablecoin.
    - **Category:** AI / Inference
    - **Tags:** `llm`, `tee`, `tdx`, `private`, `encrypted`, `phala`
@@ -48,17 +48,17 @@ The official MPP documentation site maintains a curated service directory at
 2. Edit `schemas/services.ts` — add a new entry to the `services` array:
    ```ts
    {
-     id: "temprouter",
-     name: "tempRouter",
-     url: "https://temprouter.onrender.com",
-     serviceUrl: "https://temprouter.onrender.com",
+     id: "mpprouter",
+     name: "mppRouter",
+     url: "https://mpprouter.onrender.com",
+     serviceUrl: "https://mpprouter.onrender.com",
      description: "Payable, end-to-end-encrypted LLM inference. Verify a real Intel TDX enclave with DCAP, then pay per response-chunk. The relay is blind — it forwards ciphertext and holds no key.",
      categories: ["ai"],
      integration: "first-party",
      tags: ["llm", "tee", "tdx", "private", "encrypted", "phala", "confidential"],
      docs: {
-       homepage: "https://github.com/Router-Labs/tempRouter",
-       llmsTxt: "https://temprouter.onrender.com/llms.txt",
+       homepage: "https://github.com/Router-Labs/mppRouter",
+       llmsTxt: "https://mpprouter.onrender.com/llms.txt",
      },
      provider: { name: "Router Labs", url: "https://github.com/Router-Labs" },
      realm: MPP_REALM,
@@ -82,16 +82,16 @@ The official MPP documentation site maintains a curated service directory at
 
 4. Open a PR:
    ```bash
-   git checkout -b add-temprouter
+   git checkout -b add-mpprouter
    git add schemas/services.ts
-   git commit -m "feat: add tempRouter to service directory"
-   git push origin add-temprouter
+   git commit -m "feat: add mppRouter to service directory"
+   git push origin add-mpprouter
    ```
 
-5. Open the PR on GitHub with title: `Add tempRouter — payable confidential inference (Intel TDX + MPP)`
+5. Open the PR on GitHub with title: `Add mppRouter — payable confidential inference (Intel TDX + MPP)`
 
 **Notes:**
-- They curate for quality and novelty. tempRouter's TEE + MPP angle is genuinely novel.
+- They curate for quality and novelty. mppRouter's TEE + MPP angle is genuinely novel.
 - The PR may take a few days for review.
 - Service must remain live and accepting payments.
 
@@ -102,7 +102,7 @@ The official MPP documentation site maintains a curated service directory at
 
 ## Already built-in (no action needed)
 
-tempRouter already has automated discovery endpoints that work without any listing:
+mppRouter already has automated discovery endpoints that work without any listing:
 
 | Endpoint | URL | Purpose |
 |---|---|---|
@@ -128,7 +128,7 @@ make it easier to *find*.
 
 ## Optional: Add x402 support (Branch D — expand MPP → both)
 
-tempRouter currently only supports MPP. Adding [x402](https://docs.x402.org/) would
+mppRouter currently only supports MPP. Adding [x402](https://docs.x402.org/) would
 make it discoverable by a second ecosystem of agents (Coinbase-originated, Linux Foundation).
 
 This requires:
@@ -143,7 +143,7 @@ This requires:
 
 Validate with:
 ```bash
-npx @agentcash/discovery check https://temprouter.onrender.com
+npx @agentcash/discovery check https://mpprouter.onrender.com
 ```
 
 Current status:

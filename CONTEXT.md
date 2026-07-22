@@ -1,11 +1,11 @@
-# tempRouter — Context Glossary
+# mppRouter — Context Glossary
 
-> Domain language for tempRouter. Glossary only — no implementation details.
+> Domain language for mppRouter. Glossary only — no implementation details.
 > Built during a grill-with-docs session, 2026-06-16.
 
 ## Terms
 
-### tempRouter
+### mppRouter
 A **private inference service** that is **paid via MPP** on Tempo. A Payer
 (agent or human) pays in pathUSD stablecoin to receive AI inference. The
 service's value proposition is *privacy*; the payment rail is MPP.
@@ -26,7 +26,7 @@ Whoever pays for inference. Two kinds, both in scope:
 The core value prop, scoped to exactly what runs live: **server-blind + real
 hardware-attested**. The prompt is client-side encrypted (Arcium RescueCipher +
 X25519) to a key that exists only inside a real Phala **Intel TDX** enclave;
-tempRouter forwards opaque ciphertext and never holds a key → it is a
+mppRouter forwards opaque ciphertext and never holds a key → it is a
 [[Blind relay]]. The payer can cryptographically verify (Intel DCAP) that the
 enclave is genuine hardware before paying. Explicitly NOT claimed: code-measurement
 pinning (`mrtd`/`rtmr`) — a different enclave *image* with a valid quote is out of
@@ -34,7 +34,7 @@ scope (post-hackathon). Verified live: prod `/tee/attestation` returns
 `teeType: INTEL-TDX-PHALA` + a real TDX quote.
 
 ### Blind relay
-tempRouter's server role: it holds no decryption key and never sees plaintext.
+mppRouter's server role: it holds no decryption key and never sees plaintext.
 The only cleartext it touches is payment metadata (channel id, vouchers,
 `externalId`). It proxies ciphertext to the enclave and meters the response.
 
@@ -67,7 +67,7 @@ leaking it is a concrete, visible harm.
 
 ### Private lane / model  *(honest constraint)*
 The attested TEE path runs an **OSS model (gpt-oss:20b via Nosana), NOT a frontier
-model.** So tempRouter is not a drop-in for "always use the best LLM" — it is the
+model.** So mppRouter is not a drop-in for "always use the best LLM" — it is the
 *private lane* you choose for [[Sensitive payload]] work, accepting the model-quality
 tradeoff in exchange for provable confidentiality.
 
@@ -75,7 +75,7 @@ tradeoff in exchange for provable confidentiality.
 A client-side **secret/PII detector** in the agent scans its own outgoing prompt
 (regex/entropy: API keys, private keys, JWTs, emails, …). A hit **forces** the
 attested private lane (encrypt → verify → pay via MPP); no hit → the agent may use
-any public/frontier model. The detector MUST live agent-side: tempRouter is a
+any public/frontier model. The detector MUST live agent-side: mppRouter is a
 [[Blind relay]] and only sees ciphertext, so it cannot classify the prompt. The
 policy is the *payer's* (transparent, runs before any bytes leave the agent).
 
@@ -93,6 +93,6 @@ measurements) and prints a per-check PASS/FAIL report. Measurement handling:
 strict-pin is configured. See [[Private inference]].
 
 ### Service discovery (mpp.dev/services)
-tempRouter must be **discoverable** as an MPP service. It serves an MPP/OpenAPI
+mppRouter must be **discoverable** as an MPP service. It serves an MPP/OpenAPI
 discovery document so agents and the mpp.dev directory can find and understand the
 paid endpoint + its price/unit/recipient. (Exact listing mechanism under research.)

@@ -1,13 +1,13 @@
-# tempRouter
+# mppRouter
 
 > **Confidential compute behind Intel TDX, payable per chunk on Tempo.**
 > No API keys. No trust required. — *MPP Hackathon @ Futura Camp Berlin 2026.*
 
-[![Live](https://img.shields.io/badge/live-temprouter.onrender.com-00ff88)](https://temprouter.onrender.com)
-[![GitHub](https://img.shields.io/badge/GitHub-Router--Labs/tempRouter-181717)](https://github.com/Router-Labs/tempRouter)
+[![Live](https://img.shields.io/badge/live-mpprouter.onrender.com-00ff88)](https://mpprouter.onrender.com)
+[![GitHub](https://img.shields.io/badge/GitHub-Router--Labs/mppRouter-181717)](https://github.com/Router-Labs/mppRouter)
 [![License](https://img.shields.io/badge/license-MIT-blue)](#license)
 
-**Live:** https://temprouter.onrender.com · [OpenAPI](https://temprouter.onrender.com/openapi.json) · [Attestation](https://temprouter.onrender.com/tee/attestation) · [Agent Skill](https://temprouter.onrender.com/SKILL.md)
+**Live:** https://mpprouter.onrender.com · [OpenAPI](https://mpprouter.onrender.com/openapi.json) · [Attestation](https://mpprouter.onrender.com/tee/attestation) · [Agent Skill](https://mpprouter.onrender.com/SKILL.md)
 
 ---
 
@@ -32,11 +32,11 @@
 
 ## Overview
 
-tempRouter is a **payable confidential compute endpoint**. An agent verifies the computation runs inside a real Intel TDX enclave (Intel DCAP attestation), encrypts its payload to the enclave's hardware-bound key, pays per response-chunk via MPP on Tempo, and decrypts locally.
+mppRouter is a **payable confidential compute endpoint**. An agent verifies the computation runs inside a real Intel TDX enclave (Intel DCAP attestation), encrypts its payload to the enclave's hardware-bound key, pays per response-chunk via MPP on Tempo, and decrypts locally.
 
 The relay is **blind** — it forwards ciphertext, meters usage, and holds no key. A failed attestation means **zero vouchers signed** — the client never pays for untrusted hardware.
 
-**Why it exists:** SolRouter runs private AI inference inside Intel TDX enclaves on Solana, gated by API keys. tempRouter removes the API key friction entirely — making it pay-per-use on Tempo via MPP. No accounts, no provisioning, just pay per chunk in stablecoin.
+**Why it exists:** SolRouter runs private AI inference inside Intel TDX enclaves on Solana, gated by API keys. mppRouter removes the API key friction entirely — making it pay-per-use on Tempo via MPP. No accounts, no provisioning, just pay per chunk in stablecoin.
 
 Not limited to prompts — any sensitive computation that needs verifiable confidentiality: transactions, cryptographic operations, financial data processing.
 
@@ -50,7 +50,7 @@ agent (src/agent.ts)
   3. sessionManager.sse(POST …)      ── MPP session, pay per response-chunk (Tempo Moderato)
         │
         ▼
-tempRouter (src/server.ts)  ── BLIND RELAY (holds no key)
+mppRouter (src/server.ts)  ── BLIND RELAY (holds no key)
   · mppx.session({sse:true}) gates payment per response-chunk (402 → pay → SSE stream)
   · forwards ciphertext → real Phala Intel TDX /process → meters reply chunks (withReceipt)
         │
@@ -76,7 +76,7 @@ Three parties, one blind hop:
 | Party | Role | Sees plaintext? |
 |---|---|---|
 | **Agent** (client) | Detects sensitive data, verifies enclave, encrypts, pays, decrypts | ✅ (own data) |
-| **tempRouter** (relay) | Blind relay — forwards ciphertext, meters chunks, handles MPP 402 flow | ❌ Never |
+| **mppRouter** (relay) | Blind relay — forwards ciphertext, meters chunks, handles MPP 402 flow | ❌ Never |
 | **Phala Intel TDX** (enclave) | Decrypts inside hardware, processes, re-encrypts, signs receipt | ✅ (inside TEE only) |
 
 ## Quick Start
@@ -116,17 +116,17 @@ Four surfaces, same verify-before-pay lane:
 
 | Surface | Install | Use |
 |---|---|---|
-| **SDK** | `npm install @temprouter/sdk` | `client.infer(prompt)` → `{ answer, units, paid }` |
-| **CLI** | `npm run cli --` | `temprouter infer "…"`, `verify`, `detect` |
+| **SDK** | `npm install @mpprouter/sdk` | `client.infer(prompt)` → `{ answer, units, paid }` |
+| **CLI** | `npm run cli --` | `mpprouter infer "…"`, `verify`, `detect` |
 | **MCP** | stdio server | Tools: `private_inference`, `verify_enclave`, `detect_sensitive` |
-| **Skill** | `npx skills add Router-Labs/tempRouter` | Auto-routes sensitive prompts to private lane |
+| **Skill** | `npx skills add Router-Labs/mppRouter` | Auto-routes sensitive prompts to private lane |
 
 **SDK example:**
 ```ts
-import { TempRouter, detectSensitive } from '@temprouter/sdk'
+import { MppRouter, detectSensitive } from '@mpprouter/sdk'
 
-const client = new TempRouter({
-  serverUrl: 'https://temprouter.onrender.com',
+const client = new MppRouter({
+  serverUrl: 'https://mpprouter.onrender.com',
   account: process.env.AGENT_PRIVATE_KEY as `0x${string}`,
 })
 
@@ -139,7 +139,7 @@ if (detectSensitive(prompt).sensitive) {
 
 **MCP config (Claude, etc.):**
 ```json
-{ "command": "npx", "args": ["tsx", "/abs/path/tempRouter/mcp/server.ts"] }
+{ "command": "npx", "args": ["tsx", "/abs/path/mppRouter/mcp/server.ts"] }
 ```
 
 ## Configuration
@@ -172,7 +172,7 @@ Environment variables (see [`.env.example`](.env.example)):
 
 ## Discovery
 
-tempRouter is autonomously discoverable:
+mppRouter is autonomously discoverable:
 
 - **OpenAPI 3.1** at `/openapi.json` — payment offers, endpoints, schemas
 - **llms.txt** at `/llms.txt` — agent-readable context
@@ -184,7 +184,7 @@ tempRouter is autonomously discoverable:
 ## Project Structure
 
 ```
-tempRouter/
+mppRouter/
 ├── src/
 │   ├── server.ts            # Hono server — blind relay + mppx payment middleware
 │   ├── agent.ts             # Client-side agent (verify → encrypt → pay → decrypt)
@@ -192,10 +192,10 @@ tempRouter/
 │   ├── detectSensitive.ts   # Client-side secret/PII detector
 │   ├── verifyAttestation.ts # Intel DCAP verification logic
 │   └── upstream.ts          # Phala TDX enclave passthrough
-├── sdk/                     # @temprouter/sdk — TypeScript SDK
+├── sdk/                     # @mpprouter/sdk — TypeScript SDK
 ├── cli/                     # CLI tool (infer, verify, detect)
 ├── mcp/                     # MCP stdio server (Claude, etc.)
-├── skills/temprouter/       # Agent skill (SKILL.md)
+├── skills/mpprouter/       # Agent skill (SKILL.md)
 ├── public/
 │   ├── index.html           # Landing page
 │   ├── llms.txt             # Agent context
@@ -205,7 +205,7 @@ tempRouter/
 │   ├── HACKATHON.md             # Hackathon submission writeup
 │   ├── DISCOVERY.md             # MPP catalog listing guide
 │   └── adr/                     # Architecture Decision Records
-│       ├── 0001-temprouter-is-a-blind-relay.md
+│       ├── 0001-mpprouter-is-a-blind-relay.md
 │       ├── 0002-attestation-bound-mpp-settlement.md
 │       └── 0003-per-unit-sse-metering.md
 ├── DESIGN.md                # Design spec + 4-day plan
@@ -243,16 +243,16 @@ decrypt to plaintext answer.`
 | [DESIGN.md](DESIGN.md) | Locked design spec + 4-day build plan |
 | [CONTEXT.md](CONTEXT.md) | Domain glossary (TEE, MPP, DCAP, Tempo) |
 | [docs/HACKATHON.md](docs/HACKATHON.md) | Hackathon submission writeup (devpost format) |
-| [docs/DISCOVERY.md](docs/DISCOVERY.md) | How to list tempRouter on MPP catalogs |
+| [docs/DISCOVERY.md](docs/DISCOVERY.md) | How to list mppRouter on MPP catalogs |
 | [docs/architecture.excalidraw](docs/architecture.excalidraw) | Editable architecture flow diagram |
-| [docs/adr/0001](docs/adr/0001-temprouter-is-a-blind-relay.md) | ADR: tempRouter is a blind relay |
+| [docs/adr/0001](docs/adr/0001-mpprouter-is-a-blind-relay.md) | ADR: mppRouter is a blind relay |
 | [docs/adr/0002](docs/adr/0002-attestation-bound-mpp-settlement.md) | ADR: Attestation-bound MPP settlement |
 | [docs/adr/0003](docs/adr/0003-per-unit-sse-metering.md) | ADR: Per-unit SSE metering |
-| [skills/temprouter/SKILL.md](skills/temprouter/SKILL.md) | Agent skill (quick start, errors, cost) |
+| [skills/mpprouter/SKILL.md](skills/mpprouter/SKILL.md) | Agent skill (quick start, errors, cost) |
 
 ## Contributing
 
-This is a hackathon project. PRs welcome on the [`Router-Labs/tempRouter`](https://github.com/Router-Labs/tempRouter) repo. See existing [ADR docs](docs/adr/) for architectural context before contributing.
+This is a hackathon project. PRs welcome on the [`Router-Labs/mppRouter`](https://github.com/Router-Labs/mppRouter) repo. See existing [ADR docs](docs/adr/) for architectural context before contributing.
 
 ## License
 

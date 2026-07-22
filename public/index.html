@@ -5,30 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="dark" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>" />
-<title>tempRouter — payable, end-to-end-encrypted LLM inference on MPP</title>
+<title>mppRouter — payable, end-to-end-encrypted LLM inference on MPP</title>
 <meta name="description" content="A payable inference endpoint on MPP (Tempo). Pay per response-chunk in pathUSD after your agent verifies a real Intel TDX enclave with Intel DCAP — end-to-end encrypted, the relay is blind. Drop-in via SDK, CLI, MCP, or agent skill." />
-<link rel="canonical" href="https://temprouter.onrender.com/" />
+<link rel="canonical" href="https://mpprouter.onrender.com/" />
 <!-- Agent / registry discovery surfaces -->
 <link rel="service-desc" type="application/json" href="/openapi.json" title="MPP / OpenAPI discovery" />
 <link rel="alternate" type="text/markdown" href="/llms.txt" title="llms.txt — agent context" />
 <link rel="alternate" type="text/markdown" href="/SKILL.md" title="Agent skill entrypoint" />
 <!-- Open Graph / Twitter -->
 <meta property="og:type" content="website" />
-<meta property="og:site_name" content="tempRouter" />
-<meta property="og:title" content="tempRouter — payable, E2E-encrypted LLM inference on MPP" />
+<meta property="og:site_name" content="mppRouter" />
+<meta property="og:title" content="mppRouter — payable, E2E-encrypted LLM inference on MPP" />
 <meta property="og:description" content="Pay an LLM in pathUSD only after your agent proves (Intel DCAP) it runs inside a real Intel TDX enclave that can't read the prompt." />
-<meta property="og:url" content="https://temprouter.onrender.com/" />
+<meta property="og:url" content="https://mpprouter.onrender.com/" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="tempRouter — payable, E2E-encrypted LLM inference on MPP" />
+<meta name="twitter:title" content="mppRouter — payable, E2E-encrypted LLM inference on MPP" />
 <meta name="twitter:description" content="Verify a real Intel TDX enclave, then pay per response-chunk in pathUSD. End-to-end encrypted; the relay is blind." />
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebAPI",
-  "name": "tempRouter",
+  "name": "mppRouter",
   "description": "Payable, end-to-end-encrypted LLM inference on MPP (Tempo). Verify a real Intel TDX enclave with Intel DCAP, then pay per response-chunk in pathUSD.",
-  "url": "https://temprouter.onrender.com/",
-  "documentation": "https://temprouter.onrender.com/llms.txt",
+  "url": "https://mpprouter.onrender.com/",
+  "documentation": "https://mpprouter.onrender.com/llms.txt",
   "provider": { "@type": "Organization", "name": "Router Labs", "url": "https://github.com/Router-Labs" },
   "offers": { "@type": "Offer", "price": "0.0002", "priceCurrency": "pathUSD", "description": "per response-chunk, MPP session on Tempo" }
 }
@@ -204,7 +204,7 @@
     <a href="#flow" class="hide">Flow</a>
     <a href="#integrate">Integrate</a>
     <a href="#endpoints">Endpoints</a>
-    <a href="https://github.com/Router-Labs/tempRouter">GitHub</a>
+    <a href="https://github.com/Router-Labs/mppRouter">GitHub</a>
     <span class="live"><span class="dot" aria-hidden="true"></span>live · tdx</span>
   </nav>
 </div></header>
@@ -214,7 +214,7 @@
 <div class="hero"><div class="wrap">
   <span class="label">Payable inference · MPP · Tempo · Phala Intel TDX</span>
   <h1>Pay an LLM only after you<br/>prove it never saw your prompt<span class="period">.</span></h1>
-  <p class="sub">tempRouter is a <b>payable inference endpoint on MPP</b>. Your agent verifies, with Intel DCAP, that the prompt runs inside a <b>real Intel TDX enclave</b> that can't read it — then pays per response-chunk in <b>pathUSD</b> on Tempo. End-to-end encrypted; the relay is blind. Ships as an <b>SDK, CLI, MCP server, and agent skill</b>.</p>
+  <p class="sub">mppRouter is a <b>payable inference endpoint on MPP</b>. Your agent verifies, with Intel DCAP, that the prompt runs inside a <b>real Intel TDX enclave</b> that can't read it — then pays per response-chunk in <b>pathUSD</b> on Tempo. End-to-end encrypted; the relay is blind. Ships as an <b>SDK, CLI, MCP server, and agent skill</b>.</p>
   <div class="badges">
     <span class="pill accent"><span class="d">●</span> no API key · no signup</span>
     <span class="pill"><span class="d">●</span> verify-before-pay</span>
@@ -225,7 +225,7 @@
   <div class="cta">
     <a class="btn primary" href="/SKILL.md">Agent entrypoint <span class="arrow" aria-hidden="true">→</span> /SKILL.md</a>
     <a class="btn ghost" href="/openapi.json">/openapi.json</a>
-    <a class="btn ghost" href="https://github.com/Router-Labs/tempRouter">GitHub</a>
+    <a class="btn ghost" href="https://github.com/Router-Labs/mppRouter">GitHub</a>
   </div>
 
   <div class="term" aria-label="example payment flow">
@@ -243,11 +243,11 @@ $ decrypt locally                → <span class="g">plaintext — seen only by 
 <section id="why"><div class="wrap">
   <span class="label">Why</span>
   <h2>Payment was the easy half<span class="period">.</span></h2>
-  <p class="lede">MPP already does per-chunk stablecoin billing. tempRouter ships the half MPP left open — <b>provable confidentiality</b> — as a payable endpoint any agent can discover and pay.</p>
+  <p class="lede">MPP already does per-chunk stablecoin billing. mppRouter ships the half MPP left open — <b>provable confidentiality</b> — as a payable endpoint any agent can discover and pay.</p>
   <div class="grid">
     <div class="card"><h3><span class="ico" aria-hidden="true"></span>Verify before you pay</h3><p>The agent runs Intel DCAP on the live enclave quote <b>before</b> signing the first voucher. Fail the check, sign zero vouchers — and a bad enclave can't decrypt the prompt anyway.</p></div>
     <div class="card"><h3><span class="ico" aria-hidden="true"></span>Two-phase attestation</h3><p>Pre-pay: genuine TDX + UpToDate TCB + key binding + code measurement. Post-pay receipt: enclave ed25519 over the exact ciphertext. Every check is auditable on the wire.</p></div>
-    <div class="card p"><h3><span class="ico" aria-hidden="true"></span>Blind relay</h3><p>The prompt is E2E-encrypted (Arcium RescueCipher + X25519) to a key that only exists inside the enclave. tempRouter holds no key and never sees plaintext — it forwards ciphertext.</p></div>
+    <div class="card p"><h3><span class="ico" aria-hidden="true"></span>Blind relay</h3><p>The prompt is E2E-encrypted (Arcium RescueCipher + X25519) to a key that only exists inside the enclave. mppRouter holds no key and never sees plaintext — it forwards ciphertext.</p></div>
     <div class="card p"><h3><span class="ico" aria-hidden="true"></span>Client-side secret policy</h3><p>Your agent detects API keys, private keys, JWTs and PII locally and forces the private lane — the only correct place, since a blind relay can't classify what it can't read.</p></div>
     <div class="card"><h3><span class="ico" aria-hidden="true"></span>Per-chunk MPP metering</h3><p>An MPP <code>session</code> over SSE: pay per response-chunk in pathUSD, settled in ~2 on-chain txs. One charge per inference by default; multi-chunk metering supported.</p></div>
     <div class="card"><h3><span class="ico" aria-hidden="true"></span>Discoverable + payable</h3><p>OpenAI-shaped request, MPP 402 flow, and a machine-readable discovery doc so any agent or registry (mpp.dev/services, MPPScan) can find and pay the endpoint.</p></div>
@@ -257,12 +257,12 @@ $ decrypt locally                → <span class="g">plaintext — seen only by 
 <section id="arch"><div class="wrap">
   <span class="label">Architecture</span>
   <h2>Three parties, one blind hop<span class="period">.</span></h2>
-  <p class="lede">Plaintext is only ever seen by your agent and the attested enclave. tempRouter sits in the middle and forwards ciphertext — it cannot read the prompt or the answer.</p>
+  <p class="lede">Plaintext is only ever seen by your agent and the attested enclave. mppRouter sits in the middle and forwards ciphertext — it cannot read the prompt or the answer.</p>
 <div class="diagram" aria-label="architecture diagram"><span class="a">agent</span>  (your process)
   │  detectSensitive → verify (DCAP) → encrypt → pay → decrypt
   │  <span class="g">holds the wallet + the only decryption key</span>
   ▼  ciphertext + MPP vouchers
-<b>tempRouter</b>  (this service — BLIND RELAY, holds no key)
+<b>mppRouter</b>  (this service — BLIND RELAY, holds no key)
   │  mppx session: 402 → pay-per-response-chunk → SSE
   │  forwards ciphertext, meters the reply, never sees plaintext
   ▼  ciphertext
@@ -274,10 +274,10 @@ $ decrypt locally                → <span class="g">plaintext — seen only by 
 <section id="use-cases" class="reveal"><div class="wrap">
   <span class="label">Use Cases</span>
   <h2>When to route private<span class="period">.</span></h2>
-  <p class="lede">tempRouter is the confidential lane — use it when the prompt must not leak. For everything else, any public model is cheaper and smarter.</p>
+  <p class="lede">mppRouter is the confidential lane — use it when the prompt must not leak. For everything else, any public model is cheaper and smarter.</p>
   <div class="grid two">
     <div class="card g">
-      <h3><span class="ico" aria-hidden="true"></span>Use tempRouter when:</h3>
+      <h3><span class="ico" aria-hidden="true"></span>Use mppRouter when:</h3>
       <ul class="uc-list">
         <li><span class="mk yes" aria-hidden="true">✓</span><span>Prompt contains <b>API keys</b> (sk-…, sk-ant-…)</span></li>
         <li><span class="mk yes" aria-hidden="true">✓</span><span>Includes <b>private keys</b> (0x… 64-hex), seed phrases, wallets</span></li>
@@ -288,7 +288,7 @@ $ decrypt locally                → <span class="g">plaintext — seen only by 
       </ul>
     </div>
     <div class="card">
-      <h3><span class="ico" aria-hidden="true"></span>Don't use tempRouter when:</h3>
+      <h3><span class="ico" aria-hidden="true"></span>Don't use mppRouter when:</h3>
       <ul class="uc-list">
         <li><span class="mk no" aria-hidden="true">✗</span><span><b>General questions</b> — "how does X work?"</span></li>
         <li><span class="mk no" aria-hidden="true">✗</span><span><b>Creative writing</b> — stories, poems</span></li>
@@ -344,26 +344,26 @@ $ decrypt locally                → <span class="g">plaintext — seen only by 
   <h2>Drop it into your agent<span class="period">.</span></h2>
   <p class="lede">Infrastructure, not a destination. The same verify-before-pay lane ships at four altitudes — each does the whole dance: verify → encrypt → pay per chunk → decrypt. Pick the one that fits.</p>
 
-  <pre><span class="c">// @temprouter/sdk — the whole lane in one call</span>
-<span class="k">import</span> { TempRouter, detectSensitive } <span class="k">from</span> <span class="s">'@temprouter/sdk'</span>
+  <pre><span class="c">// @mpprouter/sdk — the whole lane in one call</span>
+<span class="k">import</span> { MppRouter, detectSensitive } <span class="k">from</span> <span class="s">'@mpprouter/sdk'</span>
 
-<span class="k">const</span> client = <span class="k">new</span> TempRouter({ serverUrl: <span class="s">'https://temprouter.onrender.com'</span>, account }) <span class="c">// funded Tempo wallet</span>
+<span class="k">const</span> client = <span class="k">new</span> MppRouter({ serverUrl: <span class="s">'https://mpprouter.onrender.com'</span>, account }) <span class="c">// funded Tempo wallet</span>
 
 <span class="k">if</span> (detectSensitive(prompt).sensitive) {
   <span class="k">const</span> { answer, paid } = <span class="k">await</span> client.infer(prompt) <span class="c">// verify → encrypt → pay → decrypt</span>
 }</pre>
 
   <div class="grid two">
-    <div class="card"><div class="tag">@temprouter/sdk</div><h3><span class="ico" aria-hidden="true"></span>SDK</h3><p>One <code>client.infer(prompt)</code> call. Bundles encryption + mppx Tempo payment + Intel DCAP verify. A failed gate throws <code>AttestationError</code> and pays zero.</p></div>
-    <div class="card"><div class="tag">temprouter</div><h3><span class="ico" aria-hidden="true"></span>CLI</h3><p><code>temprouter infer "…"</code> — verify, pay per chunk, decrypt at the terminal. Plus <code>verify</code> (gate only, free) and <code>detect</code> (policy check).</p></div>
+    <div class="card"><div class="tag">@mpprouter/sdk</div><h3><span class="ico" aria-hidden="true"></span>SDK</h3><p>One <code>client.infer(prompt)</code> call. Bundles encryption + mppx Tempo payment + Intel DCAP verify. A failed gate throws <code>AttestationError</code> and pays zero.</p></div>
+    <div class="card"><div class="tag">mpprouter</div><h3><span class="ico" aria-hidden="true"></span>CLI</h3><p><code>mpprouter infer "…"</code> — verify, pay per chunk, decrypt at the terminal. Plus <code>verify</code> (gate only, free) and <code>detect</code> (policy check).</p></div>
     <div class="card p"><div class="tag">stdio · local</div><h3><span class="ico" aria-hidden="true"></span>MCP server</h3><p>Tools <code>private_inference</code>, <code>detect_sensitive</code>, <code>verify_enclave</code>. Runs in your agent's process — encryption + wallet never leave your trust domain.</p></div>
-    <div class="card p"><div class="tag">npx skills add Router-Labs/tempRouter</div><h3><span class="ico" aria-hidden="true"></span>Agent skill</h3><p>Drop the <code>temprouter</code> skill — or read it live at <a href="/SKILL.md">/SKILL.md</a> — and your agent auto-routes any secret/PII prompt to the private lane.</p></div>
+    <div class="card p"><div class="tag">npx skills add Router-Labs/mppRouter</div><h3><span class="ico" aria-hidden="true"></span>Agent skill</h3><p>Drop the <code>mpprouter</code> skill — or read it live at <a href="/SKILL.md">/SKILL.md</a> — and your agent auto-routes any secret/PII prompt to the private lane.</p></div>
   </div>
 
   <div class="term">
     <div class="bar"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i></div>
 <pre><span class="c"># or straight from a shell / agent terminal</span>
-$ temprouter infer <span class="s">"rotate this leaked sk-proj-… key — exact steps"</span>
+$ mpprouter infer <span class="s">"rotate this leaked sk-proj-… key — exact steps"</span>
 <span class="g">  🔒 sensitive payload detected (openai-key) → forcing attested private lane</span>
 <span class="g">  ✅ TDX verified  ·  💸 0.0002 pathUSD / inference  ·  🔓 decrypted locally</span></pre>
   </div>
@@ -382,17 +382,17 @@ $ temprouter infer <span class="s">"rotate this leaked sk-proj-… key — exact
     <div class="desc">The live enclave attestation (<code>teeType: INTEL-TDX-PHALA</code> + TDX quote). Verify with Intel DCAP before signing a voucher.</div>
   </div>
   <pre><span class="c"># any MPP-speaking agent — the CLI handles the 402 → pay → retry</span>
-tempo request <span class="s">https://temprouter.onrender.com/v1/chat/completions/stream</span> \
+tempo request <span class="s">https://mpprouter.onrender.com/v1/chat/completions/stream</span> \
   -d <span class="s">'{"encryptedPrompt":"…","model":"nosana:gpt-oss:20b"}'</span></pre>
 </div></section>
 
 <section id="discovery"><div class="wrap">
   <span class="label">MPP service discovery</span>
   <h2>Point your agent here<span class="period">.</span></h2>
-  <p class="lede">tempRouter publishes a machine-readable surface so agents and registries find the endpoint, its price, and its terms — no human in the loop.</p>
+  <p class="lede">mppRouter publishes a machine-readable surface so agents and registries find the endpoint, its price, and its terms — no human in the loop.</p>
   <div class="endpoint"><div class="top"><span class="verb get">GET</span><span class="path">/openapi.json</span><span class="meta">x-service-info · x-payment-info</span></div><div class="desc">OpenAPI 3.1 annotated with payment offers (amount, currency, intent, method) — listable on <a href="https://mpp.dev/services">mpp.dev/services</a> &amp; <a href="https://mppscan.com">MPPScan</a>.</div></div>
   <div class="endpoint"><div class="top"><span class="verb get">GET</span><span class="path">/llms.txt</span><span class="meta">agent context</span></div><div class="desc">Plain-language context for agents: what the service is, when to use it, and the exact pay flow.</div></div>
-  <div class="endpoint"><div class="top"><span class="verb get">GET</span><span class="path">/SKILL.md</span><span class="meta">agent entrypoint</span></div><div class="desc">An installable agent skill — <code>npx skills add Router-Labs/tempRouter</code> — that auto-routes secret/PII prompts to the private lane.</div></div>
+  <div class="endpoint"><div class="top"><span class="verb get">GET</span><span class="path">/SKILL.md</span><span class="meta">agent entrypoint</span></div><div class="desc">An installable agent skill — <code>npx skills add Router-Labs/mppRouter</code> — that auto-routes secret/PII prompts to the private lane.</div></div>
 </div></section>
 
 <section id="verify"><div class="wrap">
@@ -414,7 +414,7 @@ tempo request <span class="s">https://temprouter.onrender.com/v1/chat/completion
 
 <footer><div class="wrap">
   <div class="links">
-    <a href="https://github.com/Router-Labs/tempRouter">GitHub</a>
+    <a href="https://github.com/Router-Labs/mppRouter">GitHub</a>
     <a href="/SKILL.md">/SKILL.md</a>
     <a href="/llms.txt">/llms.txt</a>
     <a href="/openapi.json">/openapi.json</a>

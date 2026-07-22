@@ -1,5 +1,5 @@
 #!/usr/bin/env -S npx tsx
-// temprouter CLI — thin wrapper over @temprouter/sdk. Three commands:
+// mpprouter CLI — thin wrapper over @mpprouter/sdk. Three commands:
 //   infer   verify-before-pay → encrypt → per-chunk MPP pay → decrypt (the full lane)
 //   verify  pre-pay attestation gate only, never pays
 //   detect  run the sensitive-payload policy check on text
@@ -7,22 +7,22 @@
 
 import { parseArgs } from 'node:util'
 import process from 'node:process'
-import { TempRouter, detectSensitive, formatReport, AttestationError } from '../sdk/src/index.js'
+import { MppRouter, detectSensitive, formatReport, AttestationError } from '../sdk/src/index.js'
 import { config } from '../src/config.js'
 
-const USAGE = `temprouter — attestation-gated, MPP-paid confidential inference on Tempo
+const USAGE = `mpprouter — attestation-gated, MPP-paid confidential inference on Tempo
 
 usage:
-  temprouter infer "<prompt>" [--model <m>] [--server <url>] [--max-deposit <n>] [--json]
+  mpprouter infer "<prompt>" [--model <m>] [--server <url>] [--max-deposit <n>] [--json]
       verify the enclave, pay per response-chunk in pathUSD, decrypt locally.
-  temprouter verify [--server <url>]
+  mpprouter verify [--server <url>]
       run the pre-pay attestation gate only. Never pays. Exit 0 if it passes.
-  temprouter detect "<text>"
+  mpprouter detect "<text>"
       run the sensitive-payload policy check. Prints { sensitive, matches }.
 
 flags:
   --model <m>        model id (default from SDK, e.g. nosana:gpt-oss:20b)
-  --server <url>     tempRouter base URL (default: $SERVER_URL or config)
+  --server <url>     mppRouter base URL (default: $SERVER_URL or config)
   --max-deposit <n>  pathUSD deposit headroom (default: config.maxDeposit)
   --json             machine-readable output for 'infer' (no decorative lines)
   -h, --help         show this help
@@ -47,7 +47,7 @@ async function cmdInfer(prompt: string, flags: Record<string, unknown>) {
     process.exit(2)
   }
 
-  const client = new TempRouter({
+  const client = new MppRouter({
     serverUrl: (flags.server as string) || config.serverUrl,
     account: config.agentPrivateKey,
     maxDeposit: (flags['max-deposit'] as string) || config.maxDeposit,
@@ -98,7 +98,7 @@ async function cmdInfer(prompt: string, flags: Record<string, unknown>) {
 }
 
 async function cmdVerify(flags: Record<string, unknown>) {
-  const client = new TempRouter({
+  const client = new MppRouter({
     serverUrl: (flags.server as string) || config.serverUrl,
     account: config.agentPrivateKey || undefined, // verify() never pays — no wallet needed
     expectedMeasurement: config.expectedMeasurement || undefined,
@@ -136,7 +136,7 @@ async function main() {
     case 'infer': {
       const prompt = positionals[1]
       if (!prompt) {
-        console.error('infer: missing prompt. usage: temprouter infer "<prompt>"')
+        console.error('infer: missing prompt. usage: mpprouter infer "<prompt>"')
         process.exit(1)
       }
       await cmdInfer(prompt, values)
@@ -148,7 +148,7 @@ async function main() {
     case 'detect': {
       const text = positionals[1]
       if (!text) {
-        console.error('detect: missing text. usage: temprouter detect "<text>"')
+        console.error('detect: missing text. usage: mpprouter detect "<text>"')
         process.exit(1)
       }
       cmdDetect(text)

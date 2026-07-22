@@ -1,10 +1,10 @@
 #!/usr/bin/env -S npx tsx
-// tempRouter MCP server — confidential, attestation-gated inference as agent tools.
+// mppRouter MCP server — confidential, attestation-gated inference as agent tools.
 //
 // Run this LOCALLY (the agent spawns it as a stdio MCP server): the encryption and the
 // payer wallet stay inside the agent's own process, so the prompt plaintext never leaves
-// your trust domain. The remote tempRouter relay only ever sees ciphertext. Backed by
-// @temprouter/sdk.
+// your trust domain. The remote mppRouter relay only ever sees ciphertext. Backed by
+// @mpprouter/sdk.
 //
 // Tools:
 //   • detect_sensitive(text)            — should this prompt go to the private lane?
@@ -13,12 +13,12 @@
 //
 // Wire into an MCP client (e.g. Claude) as a stdio server, with AGENT_PRIVATE_KEY (a
 // funded Tempo testnet wallet) in the environment:
-//   { "command": "npx", "args": ["tsx", "/abs/path/tempRouter/mcp/server.ts"] }
+//   { "command": "npx", "args": ["tsx", "/abs/path/mppRouter/mcp/server.ts"] }
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
-import { TempRouter, detectSensitive, formatReport, AttestationError } from '../sdk/src/index.js'
+import { MppRouter, detectSensitive, formatReport, AttestationError } from '../sdk/src/index.js'
 import { config } from '../src/config.js'
 
 const ok = (t: string) => ({ content: [{ type: 'text' as const, text: t }] })
@@ -27,7 +27,7 @@ const err = (t: string) => ({ content: [{ type: 'text' as const, text: t }], isE
 /** Build a client bound to the local payer wallet (if any). `verify()` needs no wallet;
  *  `infer()` throws a clear error when unfunded — private_inference guards for that below. */
 function makeClient(serverUrl?: string) {
-  return new TempRouter({
+  return new MppRouter({
     serverUrl: serverUrl ?? config.serverUrl,
     account: config.agentPrivateKey || undefined,
     maxDeposit: config.maxDeposit,
@@ -38,7 +38,7 @@ function makeClient(serverUrl?: string) {
 
 const NO_WALLET = 'AGENT_PRIVATE_KEY not set — fund a Tempo testnet wallet and set it in this MCP server\'s environment.'
 
-const server = new McpServer({ name: 'temprouter', version: '0.1.0' })
+const server = new McpServer({ name: 'mpprouter', version: '0.1.0' })
 
 server.registerTool(
   'detect_sensitive',
@@ -63,8 +63,8 @@ server.registerTool(
   {
     title: 'Verify the TDX enclave (pre-pay, free)',
     description:
-      'Fetch tempRouter\'s live enclave attestation and run Intel DCAP verification. Returns a per-check PASS/FAIL transparency report. Never pays. Use to independently confirm the enclave is genuine Intel TDX before relying on private_inference.',
-    inputSchema: { server: z.string().optional().describe('Override the tempRouter base URL.') },
+      'Fetch mppRouter\'s live enclave attestation and run Intel DCAP verification. Returns a per-check PASS/FAIL transparency report. Never pays. Use to independently confirm the enclave is genuine Intel TDX before relying on private_inference.',
+    inputSchema: { server: z.string().optional().describe('Override the mppRouter base URL.') },
   },
   async ({ server }) => {
     const report = await makeClient(server).verify() // free — no wallet required
@@ -77,11 +77,11 @@ server.registerTool(
   {
     title: 'Confidential inference (verify → encrypt → pay → decrypt)',
     description:
-      'Run a prompt through tempRouter\'s confidential lane: verify a real Phala Intel TDX enclave with Intel DCAP, encrypt the prompt to the enclave key, pay per response-chunk in pathUSD on Tempo, and decrypt the answer locally. A failed attestation pays NOTHING. Use for any prompt containing secrets, credentials, or PII. The enclave runs an OSS model (gpt-oss:20b) — use it for confidential payloads, not as a frontier-model replacement.',
+      'Run a prompt through mppRouter\'s confidential lane: verify a real Phala Intel TDX enclave with Intel DCAP, encrypt the prompt to the enclave key, pay per response-chunk in pathUSD on Tempo, and decrypt the answer locally. A failed attestation pays NOTHING. Use for any prompt containing secrets, credentials, or PII. The enclave runs an OSS model (gpt-oss:20b) — use it for confidential payloads, not as a frontier-model replacement.',
     inputSchema: {
       prompt: z.string().describe('The (possibly sensitive) prompt to run privately.'),
       model: z.string().optional().describe('Model id (default nosana:gpt-oss:20b).'),
-      server: z.string().optional().describe('Override the tempRouter base URL.'),
+      server: z.string().optional().describe('Override the mppRouter base URL.'),
     },
   },
   async ({ prompt, model, server }) => {
@@ -100,4 +100,4 @@ server.registerTool(
 
 await server.connect(new StdioServerTransport())
 // stdout is the MCP protocol channel — logs MUST go to stderr.
-console.error('tempRouter MCP server ready (stdio) · tools: detect_sensitive, verify_enclave, private_inference')
+console.error('mppRouter MCP server ready (stdio) · tools: detect_sensitive, verify_enclave, private_inference')

@@ -1,5 +1,5 @@
 // The private upstream: the REAL Phala Intel TDX enclave (chain-agnostic over HTTP).
-// tempRouter forwards opaque ciphertext to it and meters the response — it is a
+// mppRouter forwards opaque ciphertext to it and meters the response — it is a
 // blind relay (ADR-0001). In stub/down mode there is no TDX, so the attestation is
 // STUB-NO-TDX and the agent's pre-pay verifyQuote() correctly refuses to pay.
 

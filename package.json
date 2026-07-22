@@ -1,5 +1,5 @@
 {
-  "name": "temprouter",
+  "name": "mpprouter",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,7 @@
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
     "agent": "tsx src/agent.ts",
-    "cli": "tsx cli/temprouter.ts",
+    "cli": "tsx cli/mpprouter.ts",
     "mcp": "tsx mcp/server.ts"
   },
   "engines": {

@@ -1,1 +1,1 @@
-{ "name": "@temprouter/cli", "version": "0.1.0", "type": "module", "bin": { "temprouter": "./temprouter.ts" }, "engines": { "node": ">=20.12" } }
+{ "name": "@mpprouter/cli", "version": "0.1.0", "type": "module", "bin": { "mpprouter": "./mpprouter.ts" }, "engines": { "node": ">=20.12" } }

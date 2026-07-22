@@ -1,12 +1,12 @@
 // Independent, end-to-end verifier for a SolRouter v2 encryption-proof attestation.
 // Ported verbatim from SolRouter's dev/backend/verify-attestation.mjs (the only
-// prod-passing formula) — see ADR-0002. Differences for tempRouter:
+// prod-passing formula) — see ADR-0002. Differences for mppRouter:
 //   - pure function: verifies a GIVEN /process response (does not fetch its own)
 //   - DROPS the Solana Light Protocol on-chain check (chain-coupled; out of scope)
 //   - adds a structural teeType gate (STUB-NO-TDX / null quote fail closed)
 //   - adds mrtd/rtmr extraction + optional strict-pin (DESIGN §1, transparency)
 //
-// Proves, with NO trust in tempRouter or the enclave operator:
+// Proves, with NO trust in mppRouter or the enclave operator:
 //   1. The TDX quote is genuine Intel hardware (DCAP: sig → PCK chain → Intel root + TCB).
 //   2. The quote commits to the enclave keys: report_data == sha512("app-data:" || sha256(teePub||enclavePub)).
 //   3. The enclave ed25519-signed THIS exact ciphertext (SOLR-ATTEST-v2 envelope).

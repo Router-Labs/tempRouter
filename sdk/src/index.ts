@@ -1,4 +1,4 @@
-// @temprouter/sdk — the Tempo client SDK for tempRouter.
+// @mpprouter/sdk — the Tempo client SDK for mppRouter.
 //
 // Confidential, attestation-gated, MPP-paid AI inference in ONE call. Wraps three
 // pieces so an agent never hand-rolls the dance:
@@ -7,7 +7,7 @@
 //   • Intel DCAP      — verify the TDX enclave BEFORE any money moves (fail-closed)
 //
 // The payer verifies the enclave, encrypts to its key, pays per chunk in pathUSD on
-// Tempo, then decrypts locally. tempRouter is a blind relay — it only ever sees
+// Tempo, then decrypts locally. mppRouter is a blind relay — it only ever sees
 // ciphertext. A failed attestation signs ZERO vouchers.
 //
 // NOTE: the DCAP verifier + secret detector are sourced from ../../src for now (single
@@ -27,11 +27,11 @@ import {
 } from '../../src/verifyAttestation.js'
 import { detectSensitive, type Detection } from '../../src/detectSensitive.js'
 
-const PROOF_SENTINEL = '__TEMPROUTER_PROOF__' // final SSE frame carrying the post-pay receipt
+const PROOF_SENTINEL = '__MPPROUTER_PROOF__' // final SSE frame carrying the post-pay receipt
 const DEFAULT_MODEL = 'nosana:gpt-oss:20b'
 
-export type TempRouterOptions = {
-  /** tempRouter base URL, e.g. https://temprouter.onrender.com */
+export type MppRouterOptions = {
+  /** mppRouter base URL, e.g. https://mpprouter.onrender.com */
   serverUrl: string
   /** Payer wallet: a viem `Account`, or a `0x` private key (Tempo testnet). Only
    *  required to pay — `verify()` works without it. */
@@ -68,26 +68,26 @@ export type InferResult = {
 export class AttestationError extends Error {
   report: VerifyReport
   constructor(report: VerifyReport) {
-    super('tempRouter: attestation gate FAILED — refusing to pay (zero vouchers signed).')
+    super('mppRouter: attestation gate FAILED — refusing to pay (zero vouchers signed).')
     this.name = 'AttestationError'
     this.report = report
   }
 }
 
 /**
- * The tempRouter client. Construct once with a payer wallet, then call `infer()`.
+ * The mppRouter client. Construct once with a payer wallet, then call `infer()`.
  *
  * @example
  * ```ts
- * import { TempRouter, detectSensitive } from '@temprouter/sdk'
+ * import { MppRouter, detectSensitive } from '@mpprouter/sdk'
  *
- * const client = new TempRouter({ serverUrl: 'https://temprouter.onrender.com', account: '0x…' })
+ * const client = new MppRouter({ serverUrl: 'https://mpprouter.onrender.com', account: '0x…' })
  * if (detectSensitive(prompt).sensitive) {
  *   const { answer } = await client.infer(prompt)   // verify → encrypt → pay → decrypt
  * }
  * ```
  */
-export class TempRouter {
+export class MppRouter {
   #serverUrl: string
   #accountInput?: Account | `0x${string}`
   #account?: Account
@@ -95,7 +95,7 @@ export class TempRouter {
   #pricePerUnit: string
   #expectedMeasurement?: string
 
-  constructor(opts: TempRouterOptions) {
+  constructor(opts: MppRouterOptions) {
     this.#serverUrl = opts.serverUrl.replace(/\/$/, '')
     this.#accountInput = opts.account
     this.#maxDeposit = opts.maxDeposit ?? '1'
@@ -108,7 +108,7 @@ export class TempRouter {
   #resolveAccount(): Account {
     if (this.#account) return this.#account
     if (!this.#accountInput)
-      throw new Error('tempRouter: no payer account configured — pass `account` (a viem Account or 0x private key) to pay for inference.')
+      throw new Error('mppRouter: no payer account configured — pass `account` (a viem Account or 0x private key) to pay for inference.')
     this.#account = typeof this.#accountInput === 'string' ? privateKeyToAccount(this.#accountInput) : this.#accountInput
     return this.#account
   }
@@ -132,7 +132,7 @@ export class TempRouter {
     opts.onVerify?.(prePay)
     if (!prePay.ok) throw new AttestationError(prePay)
 
-    // 2. Encrypt the prompt to the enclave key (via tempRouter's blind passthrough).
+    // 2. Encrypt the prompt to the enclave key (via mppRouter's blind passthrough).
     const enc = await encrypt(prompt, this.#serverUrl)
     const encryptedPrompt = packageForTEE(enc)
 

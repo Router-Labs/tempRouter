@@ -1,6 +1,6 @@
-# @temprouter/sdk
+# @mpprouter/sdk
 
-The Tempo client SDK for **tempRouter** — confidential, attestation-gated, MPP-paid AI
+The Tempo client SDK for **mppRouter** — confidential, attestation-gated, MPP-paid AI
 inference in one call.
 
 Your agent pays per response-chunk in **pathUSD** on Tempo — but only after it
@@ -17,16 +17,16 @@ The SDK wraps three things so you never hand-roll them:
 ## Install
 
 ```bash
-npm i @temprouter/sdk mppx @solrouter/sdk viem
+npm i @mpprouter/sdk mppx @solrouter/sdk viem
 ```
 
 ## Use
 
 ```ts
-import { TempRouter, detectSensitive } from '@temprouter/sdk'
+import { MppRouter, detectSensitive } from '@mpprouter/sdk'
 
-const client = new TempRouter({
-  serverUrl: 'https://temprouter.onrender.com',
+const client = new MppRouter({
+  serverUrl: 'https://mpprouter.onrender.com',
   account: process.env.AGENT_PRIVATE_KEY as `0x${string}`, // funded Tempo testnet wallet
 })
 
@@ -50,7 +50,7 @@ that can't prove it's blind. Plaintext is only ever seen by you and the attested
 
 | Member | What it does |
 |---|---|
-| `new TempRouter({ serverUrl, account, maxDeposit?, pricePerUnit?, expectedMeasurement? })` | Construct a client with a payer wallet. |
+| `new MppRouter({ serverUrl, account, maxDeposit?, pricePerUnit?, expectedMeasurement? })` | Construct a client with a payer wallet. |
 | `client.infer(prompt, opts?)` → `{ answer, units, paid, attestation }` | Verify → encrypt → pay → decrypt. Throws `AttestationError` on a failed gate. |
 | `client.verify()` → `VerifyReport` | Pre-pay attestation gate only. Never pays. |
 | `detectSensitive(prompt)` → `{ sensitive, matches[] }` | Client-side secret/PII policy — decide whether to use the private lane. |

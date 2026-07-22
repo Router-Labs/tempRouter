@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: temprouter
+    name: mpprouter
     runtime: node
     plan: starter
     region: oregon

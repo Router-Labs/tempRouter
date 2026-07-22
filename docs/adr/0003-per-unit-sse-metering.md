@@ -31,7 +31,7 @@ Store.memory() })` is built once at module scope, so `Session.session()` runs on
 bakes one `ChannelStore` (cached by `WeakMap` on the Store object) into the method
 closure; every per-request `mppx.session({...})(req)` reuses it.
 
-**Real root cause (tempRouter's bug, not mppx's):** the mid-stream voucher POST is
+**Real root cause (mppRouter's bug, not mppx's):** the mid-stream voucher POST is
 **header-only** (Authorization only, empty body), but `@hono/node-server` hands even an
 empty POST a **non-null** body stream. mppx's HTTP-transport `captureRequest`
 (`src/server/Transport.ts:141` — `hasBody: request.body !== null`) therefore reports
@@ -57,7 +57,7 @@ changes.
 ## Resolved (2026-06-17): cooperative close
 
 `manager.close()` now settles cleanly on-chain — **verified**: `channel closed.` after the
-4-unit stream + decrypt, payer (`temprouter` `0x9BD2…`) → payee (`demo-service` `0x44a7…`).
+4-unit stream + decrypt, payer (`mpprouter` `0x9BD2…`) → payee (`demo-service` `0x44a7…`).
 
 **Cause (distinct from the streaming bug):** the server-side close path
 (`handleCloseCredential` → `assertSettlementSender`, `CredentialVerification.ts:652` /

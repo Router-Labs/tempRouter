@@ -1,7 +1,7 @@
 {
-  "name": "@temprouter/sdk",
+  "name": "@mpprouter/sdk",
   "version": "0.1.0",
-  "description": "Tempo client SDK for tempRouter — confidential, attestation-gated, MPP-paid AI inference in one call.",
+  "description": "Tempo client SDK for mppRouter — confidential, attestation-gated, MPP-paid AI inference in one call.",
   "type": "module",
   "exports": {
     ".": {

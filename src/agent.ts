@@ -1,8 +1,8 @@
-// tempRouter demo agent — now built on @temprouter/sdk. Shows the privacy policy gate
+// mppRouter demo agent — now built on @mpprouter/sdk. Shows the privacy policy gate
 // + verify-before-pay + per-chunk MPP metering + decrypt, all via the reusable client.
 // Fail-closed: a failed attestation gate signs ZERO vouchers (ADR-0002).
 
-import { TempRouter, detectSensitive, formatReport, AttestationError } from '../sdk/src/index.js'
+import { MppRouter, detectSensitive, formatReport, AttestationError } from '../sdk/src/index.js'
 import { config } from './config.js'
 
 const MODEL = process.env.MODEL ?? 'nosana:gpt-oss:20b'
@@ -19,7 +19,7 @@ async function main() {
   const det = detectSensitive(PROMPT)
   if (det.sensitive) console.log(`🔒 sensitive payload detected (${det.matches.join(', ')}) → forcing attested private lane`)
   else {
-    console.log('ℹ️  not sensitive → a normal agent would use a public/frontier model (out of tempRouter scope)')
+    console.log('ℹ️  not sensitive → a normal agent would use a public/frontier model (out of mppRouter scope)')
     return
   }
 
@@ -28,7 +28,7 @@ async function main() {
     process.exit(2)
   }
 
-  const client = new TempRouter({
+  const client = new MppRouter({
     serverUrl: config.serverUrl,
     account: config.agentPrivateKey,
     maxDeposit: config.maxDeposit,
