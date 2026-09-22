@@ -19,12 +19,12 @@ async function main() {
   const det = detectSensitive(PROMPT)
   if (det.sensitive) console.log(`🔒 sensitive payload detected (${det.matches.join(', ')}) → forcing attested private lane`)
   else {
-    console.log('ℹ️  not sensitive → a normal agent would use a public/frontier model (out of mppRouter scope)')
+
     return
   }
 
   if (!config.agentPrivateKey) {
-    console.error('\nAGENT_PRIVATE_KEY not set — fund a Tempo testnet key to run the paid stream (faucet: https://explore.testnet.tempo.xyz).')
+
     process.exit(2)
   }
 
@@ -43,7 +43,7 @@ async function main() {
       onUnit: (n, paid) => process.stdout.write(`\r  💸 [units paid: ${n} | ${paid} pathUSD]`),
     })
     if (res.attestation.postPay) console.log('\n── post-pay receipt verification ──\n' + formatReport(res.attestation.postPay))
-    console.log('\n🔓 decrypted answer (plaintext only ever seen by you + the attested enclave):\n' + res.answer)
+
   } catch (e) {
     if (e instanceof AttestationError) {
       console.error('\n⛔ ' + e.message + '\n' + formatReport(e.report))

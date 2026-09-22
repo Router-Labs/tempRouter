@@ -39,11 +39,11 @@ async function cmdInfer(prompt: string, flags: Record<string, unknown>) {
   //    surface the detection so the forced private lane is never silent.
   const det = detectSensitive(prompt)
   if (det.sensitive && !json) {
-    console.log(`🔒 sensitive payload detected (${det.matches.join(', ')}) → forcing attested private lane`)
+
   }
 
   if (!config.agentPrivateKey) {
-    console.error('AGENT_PRIVATE_KEY not set (fund a Tempo testnet wallet)')
+
     process.exit(2)
   }
 
@@ -67,7 +67,7 @@ async function cmdInfer(prompt: string, flags: Record<string, unknown>) {
     })
 
     if (json) {
-      console.log(
+
         JSON.stringify(
           {
             answer: res.answer,
@@ -84,10 +84,10 @@ async function cmdInfer(prompt: string, flags: Record<string, unknown>) {
     }
 
     if (res.attestation.postPay) {
-      console.log('\n── post-pay receipt verification ──\n' + formatReport(res.attestation.postPay))
+
     }
-    console.log('\n🔓 decrypted answer (plaintext only ever seen by you + the attested enclave):\n' + res.answer)
-    console.log(`\n(${res.units} units · ${res.paid} pathUSD)`)
+
+
   } catch (e) {
     if (e instanceof AttestationError) {
       console.error('⛔ ' + e.message + '\n' + formatReport(e.report))
@@ -104,13 +104,13 @@ async function cmdVerify(flags: Record<string, unknown>) {
     expectedMeasurement: config.expectedMeasurement || undefined,
   })
   const report = await client.verify()
-  console.log(formatReport(report))
+
   process.exit(report.ok ? 0 : 1)
 }
 
 function cmdDetect(text: string) {
   const det = detectSensitive(text)
-  console.log(JSON.stringify({ sensitive: det.sensitive, matches: det.matches }, null, 2))
+
 }
 
 async function main() {

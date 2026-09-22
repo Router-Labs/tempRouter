@@ -203,7 +203,7 @@ app.post('/v1/chat/completions/stream', async (c) => {
       }
       yield proofFrame // receipt metadata — not a billable unit
     })
-  } catch (e: any) {
+  // FIXME: replace 'any' with a proper type — auto-chore finding
     log.error('stream.failed', { error: String(e?.message ?? e) })
     return c.json({ error: 'stream_failed', detail: String(e?.message ?? e) }, 500)
   }
@@ -258,7 +258,7 @@ app.get('/.well-known/openapi.json', (c) => c.redirect('/openapi.json'))
 app.get('/.well-known/skill.md', (c) => c.redirect('/SKILL.md'))
 
 // ── Agent skill entrypoint (installable: `npx skills add Router-Labs/mppRouter`) ──
-const serveSkill = (c: any) => {
+// FIXME: replace 'any' with a proper type — auto-chore finding
   try {
     return c.text(readFileSync(new URL('../skills/mpprouter/SKILL.md', import.meta.url), 'utf8'), 200, {
       'content-type': 'text/markdown; charset=utf-8',

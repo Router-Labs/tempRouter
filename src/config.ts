@@ -5,83 +5,7 @@ import process from 'node:process'
 try {
   ;(process as any).loadEnvFile?.('.env')
 } catch {
-  /* no .env — use process env / defaults */
-}
 
-export const config = {
-  port: Number(process.env.PORT ?? 8402),
-  secretKey: process.env.MPP_SECRET_KEY ?? 'dev-insecure-secret-change-me',
-  recipient: (process.env.TEMPO_RECIPIENT ??
-    '0xa726a1CD723409074DF9108A2187cfA19899aCF8') as `0x${string}`,
-
-  // Pricing (decimal token units; TIP-20 stablecoins use 6 decimals).
-  pricePerUnit: process.env.PRICE_PER_UNIT ?? '0.0002', // per response-chunk (session/SSE)
-  // How many SSE chunks the blind relay slices the enclave's single ciphertext
-  // blob into — each chunk = one MPP voucher tick, so the payer's balance visibly
-  // ticks per chunk. Multi-unit metering is fixed + verified end-to-end (ADR-0003).
-  // Default 1 = one charge per inference; set CHUNK_COUNT>1 to meter a response in N ticks.
-  chunkCount: Number(process.env.CHUNK_COUNT ?? 1),
-
-  // Real Phala Intel TDX enclave (the private upstream). When unset → stub mode.
-  teeEndpoint: (process.env.TEE_ENDPOINT ?? '').replace(/\/$/, ''),
-
-  // Optional strict-pin: reject the quote unless mrtd/rtmr equals this value.
-  // Unset → soft-pin (compare-to-advertised + display only). See DESIGN §1.
-  expectedMeasurement: process.env.EXPECTED_MEASUREMENT ?? '',
-
-  // Optional PAYEE key: when set, the server can cooperatively CLOSE (settle) the
-  // channel on-chain as the recipient — the settlement tx sender must equal the
-  // channel payee. Its address MUST equal TEMPO_RECIPIENT. Unset → close stays
-  // best-effort (deposit reclaims on channel timeout). See ADR-0003.
-  recipientPrivateKey: (process.env.TEMPO_RECIPIENT_PRIVATE_KEY ?? '') as `0x${string}` | '',
-
-  // Client/agent side.
-  agentPrivateKey: (process.env.AGENT_PRIVATE_KEY ?? '') as `0x${string}` | '',
-  serverUrl: (process.env.SERVER_URL ?? 'http://localhost:8402').replace(/\/$/, ''),
-  maxDeposit: process.env.MAX_DEPOSIT ?? '1', // pathUSD headroom cap (human units)
-
-  // Default model id the blind relay forwards to the enclave when a client omits one.
-  upstreamModel: process.env.UPSTREAM_MODEL ?? 'nosana:gpt-oss:20b',
-} as const
-
-// Tempo chains — verified from mppx/dist/tempo/internal/defaults.
-// Mainnet (Allegro): chain 4217, currency USDC.e
-// Testnet (Moderato): chain 42431, currency pathUSD
-export const tempoMainnet = {
-  chainId: 4217,
-  rpcUrl: 'https://rpc.tempo.xyz',
-  explorer: 'https://explore.tempo.xyz',
-  currency: '0x20C000000000000000000000b9537d11c60E8b50' as `0x${string}`, // USDC.e
-  currencyName: 'USDC',
-  decimals: 6,
-} as const
-
-export const tempoTestnet = {
-  chainId: 42431,
-  rpcUrl: 'https://rpc.moderato.tempo.xyz',
-  explorer: 'https://explore.testnet.tempo.xyz',
-  currency: '0x20c0000000000000000000000000000000000000' as `0x${string}`, // pathUSD
-  currencyName: 'pathUSD',
-  decimals: 6,
-} as const
-
-// Active chain — select via NETWORK env ("mainnet" | "testnet"), default testnet.
-export const isMainnet = process.env.NETWORK === 'mainnet'
-export const tempoChain = isMainnet ? tempoMainnet : tempoTestnet
-
-// Derived: where to fetch the enclave attestation + public key (blind passthrough).
-export const teeAttestationUrl = config.teeEndpoint ? `${config.teeEndpoint}/attestation` : ''
-export const teePublicKeyUrl = config.teeEndpoint ? `${config.teeEndpoint}/public-key` : ''
-
-/**
- * Three-valued privacy mode, resolved at boot by an honest healthcheck of the
- * real Phala TDX enclave. The green/private path is reachable ONLY in 'tdx-live'.
- * See ADR-0001 + DESIGN §2 (loud, code-enforced fallback).
- *
- *  - 'stub'     : no TEE_ENDPOINT configured → intentional offline demo (no TDX).
- *  - 'down'     : TEE_ENDPOINT set but unreachable / not a real INTEL-TDX-PHALA enclave.
- *  - 'tdx-live' : reachable enclave returning teeType INTEL-TDX-PHALA + a non-null tdxQuote.
- */
 export type PrivacyMode = 'tdx-live' | 'stub' | 'down'
 
 export async function resolveMode(timeoutMs = 6000): Promise<PrivacyMode> {
@@ -92,7 +16,7 @@ export async function resolveMode(timeoutMs = 6000): Promise<PrivacyMode> {
     const res = await fetch(teeAttestationUrl, { signal: ctrl.signal })
     clearTimeout(t)
     if (!res.ok) return 'down'
-    const att: any = await res.json()
+    // FIXME: replace 'any' with a proper type — auto-chore finding
     const live = att?.teeType === 'INTEL-TDX-PHALA' && att?.tdxQuote != null
     return live ? 'tdx-live' : 'down'
   } catch {

@@ -25,18 +25,7 @@ const PATTERNS: { label: string; re: RegExp }[] = [
 // Valid BIP-39 mnemonic word counts (entropy 128..256 bits → 12/15/18/21/24 words).
 const MNEMONIC_LENGTHS = new Set([12, 15, 18, 21, 24])
 
-/**
- * Seed-phrase / mnemonic shape — a deliberately fail-SAFE heuristic, no 2048-word list.
- *
- * A BIP-39 mnemonic is a run of EXACTLY 12/15/18/21/24 words, each 3–8 lowercase letters,
- * separated only by whitespace. We scan for such a run ANYWHERE in the text — including a
- * phrase pasted inline in a sentence — because for a privacy gate, MISSING a seed phrase
- * (leaking it to a public model) is far worse than over-routing. Capital letters and
- * punctuation break a run (a sentence's "." / "The" won't match [a-z]{3,8}), so real prose
- * rarely trips it. Honest caveat: this is a SHAPE check, so a contrived all-lowercase,
- * punctuation-free run of exactly mnemonic length CAN over-fire (→ the paid private lane);
- * that's the acceptable, safe direction. Eliminating it entirely would need the wordlist.
- */
+
 function looksLikeSeedPhrase(text: string): boolean {
   const runs = text.match(/\b[a-z]{3,8}(?:\s+[a-z]{3,8})*\b/g) ?? []
   return runs.some((run) => MNEMONIC_LENGTHS.has(run.split(/\s+/).length))
@@ -58,33 +47,7 @@ function luhnValid(digits: string): boolean {
   return sum % 10 === 0
 }
 
-/** Credit-card shape: a 13–19 digit run (optionally space/hyphen separated) that passes Luhn. */
-function looksLikeCreditCard(text: string): boolean {
-  for (const m of text.matchAll(/\b(?:\d[ -]?){12,18}\d\b/g)) {
-    const digits = m[0].replace(/[ -]/g, '')
-    if (digits.length >= 13 && digits.length <= 19 && luhnValid(digits)) return true
-  }
-  return false
-}
 
-// Shannon entropy — catches high-entropy secrets that don't match a known shape.
-function entropy(s: string): number {
-  const freq: Record<string, number> = {}
-  for (const c of s) freq[c] = (freq[c] ?? 0) + 1
-  return -Object.values(freq).reduce((h, n) => {
-    const p = n / s.length
-    return h + p * Math.log2(p)
-  }, 0)
-}
-
-function hasHighEntropyToken(text: string): boolean {
-  for (const tok of text.split(/\s+/)) {
-    if (tok.length >= 24 && /[A-Za-z]/.test(tok) && /[0-9]/.test(tok) && entropy(tok) > 3.6) return true
-  }
-  return false
-}
-
-/** Returns whether the prompt contains secrets/PII that must use the private lane. */
 export function detectSensitive(prompt: string): Detection {
   const matches: string[] = []
   for (const { label, re } of PATTERNS) if (re.test(prompt)) matches.push(label)

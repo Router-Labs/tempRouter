@@ -64,29 +64,7 @@ export type InferResult = {
   attestation: { prePay: VerifyReport; postPay?: VerifyReport }
 }
 
-/** Thrown when the pre-pay attestation gate fails. Zero vouchers are signed. */
-export class AttestationError extends Error {
-  report: VerifyReport
-  constructor(report: VerifyReport) {
-    super('mppRouter: attestation gate FAILED — refusing to pay (zero vouchers signed).')
-    this.name = 'AttestationError'
-    this.report = report
-  }
-}
 
-/**
- * The mppRouter client. Construct once with a payer wallet, then call `infer()`.
- *
- * @example
- * ```ts
- * import { MppRouter, detectSensitive } from '@mpprouter/sdk'
- *
- * const client = new MppRouter({ serverUrl: 'https://mpprouter.onrender.com', account: '0x…' })
- * if (detectSensitive(prompt).sensitive) {
- *   const { answer } = await client.infer(prompt)   // verify → encrypt → pay → decrypt
- * }
- * ```
- */
 export class MppRouter {
   #serverUrl: string
   #accountInput?: Account | `0x${string}`
