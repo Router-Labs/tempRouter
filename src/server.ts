@@ -19,9 +19,9 @@ import { z } from 'zod'
 import { config, resolveMode, tempoChain, isMainnet, type PrivacyMode } from './config.js'
 import { teeProcess, fetchAttestation, fetchTeePublicKeyRaw, chunk } from './upstream.js'
 import { log } from './logger.js'
+import { PROOF_SENTINEL } from './proofSentinel.js'
 
 const sha256hex = (s: string) => createHash('sha256').update(s).digest('hex')
-const PROOF_SENTINEL = '__MPPROUTER_PROOF__' // final SSE frame carrying the post-pay receipt
 const startedAt = Date.now()
 
 // Cap the request body. The only content body is an encrypted prompt; anything past this
@@ -218,7 +218,7 @@ app.get('/openapi.json', (c) => {
     servers: [{ url: c.req.url.replace(/\/openapi\.json$/, ''), description: 'Current origin' }],
     'x-service-info': {
       categories: ['ai', 'inference', 'privacy'],
-      docs: { homepage: 'https://github.com/Router-Labs/mppRouter', llms: '/llms.txt' },
+      docs: { homepage: 'https://github.com/Router-Labs/tempRouter', llms: '/llms.txt' },
     },
     paths: {
       '/v1/chat/completions/stream': {
