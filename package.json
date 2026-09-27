@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Confidential-inference rail for agents on Tempo — verify a real Intel TDX enclave, then pay per response-chunk in pathUSD. Server + SDK + CLI + MCP.",
+  "description": "Confidential-inference rail for agents on Tempo \u2014 verify a real Intel TDX enclave, then pay per response-chunk in pathUSD. Server + SDK + CLI + MCP.",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
     "agent": "tsx src/agent.ts",
     "cli": "tsx cli/mpprouter.ts",
-    "mcp": "tsx mcp/server.ts"
+    "mcp": "tsx mcp/server.ts",
+    "test": "node --import tsx --test test/*.test.ts scripts/*.test.mjs"
   },
   "engines": {
     "node": ">=20.12"

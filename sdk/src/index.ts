@@ -26,8 +26,8 @@ import {
   type VerifyReport,
 } from '../../src/verifyAttestation.js'
 import { detectSensitive, type Detection } from '../../src/detectSensitive.js'
+import { proofPayload } from '../../src/proofSentinel.js'
 
-const PROOF_SENTINEL = '__MPPROUTER_PROOF__' // final SSE frame carrying the post-pay receipt
 const DEFAULT_MODEL = 'nosana:gpt-oss:20b'
 
 export type MppRouterOptions = {
@@ -152,8 +152,9 @@ export class MppRouter {
     let units = 0
     let proof: unknown = null
     for await (const frame of stream) {
-      if (frame.startsWith(PROOF_SENTINEL)) {
-        proof = JSON.parse(frame.slice(PROOF_SENTINEL.length))
+      const payload = proofPayload(frame)
+      if (payload !== null) {
+        proof = JSON.parse(payload)
         continue
       }
       cipher += frame
