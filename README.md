@@ -105,10 +105,19 @@ npm run cli -- detect "my password is hunter2 and key is 0xdeadbeef"
 
 **Run the server:**
 ```bash
-TEE_ENDPOINT=https://solrouter-obb4.onrender.com/tee \
+TEE_ENDPOINT=https://api.solrouter.com/tee \
 MPP_SECRET_KEY=$(openssl rand -hex 24) \
 npm start
 ```
+
+`TEE_ENDPOINT` remains configurable. The canonical SolRouter upstream is
+`https://api.solrouter.com/tee`; this is separate from the MPP service's own
+public domain. Existing deployment environment values are not changed by editing
+this example: review them during rollout and keep the legacy origin available for
+clients that have not migrated. No payment or network selection changes are needed.
+
+Offline configuration checks (no inference, payment, or receipt capture):
+`node --test scripts/api-domain.test.mjs` and `npx tsc --noEmit`.
 
 ## Integration
 
