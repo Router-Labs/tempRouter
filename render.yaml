@@ -11,7 +11,7 @@ services:
     envVars:
       # Real Phala Intel TDX enclave (public). Drives tdx-live mode.
       - key: TEE_ENDPOINT
-        value: https://solrouter-obb4.onrender.com/tee
+        value: https://api.solrouter.com/tee
       # HMAC secret for binding/verifying MPP challenges. NOT a chain key.
       - key: MPP_SECRET_KEY
         generateValue: true
