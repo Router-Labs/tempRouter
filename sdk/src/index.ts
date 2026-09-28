@@ -132,8 +132,12 @@ export class MppRouter {
     opts.onVerify?.(prePay)
     if (!prePay.ok) throw new AttestationError(prePay)
 
-    // 2. Encrypt the prompt to the enclave key (via mppRouter's blind passthrough).
-    const enc = await encrypt(prompt, this.#serverUrl)
+    // 2. Encrypt the prompt to the ATTESTED enclave key. Passing the key from the
+    //    verified attestation doc pins @solrouter/sdk's key fetch: if /tee/public-key
+    //    serves (or previously cached) a different key than the attested one, encrypt
+    //    throws BEFORE any payment. A server that advertises no key keeps the old
+    //    unpinned behavior.
+    const enc = await encrypt(prompt, this.#serverUrl, true, prePay.teePublicKey)
     const encryptedPrompt = packageForTEE(enc)
 
     // 3. Pay per response-chunk over an MPP session on Tempo.

@@ -60,6 +60,10 @@ export type VerifyReport = {
   /** sha256(JSON.stringify(tdxQuote)) — the enclave's own quote digest (== encryptionProof.tdxQuoteHash). Not bound to any voucher. */
   tdxQuoteDigest: string
   measurement: { mrtd?: string; rtmr?: string }
+  /** The base64 X25519 key the verified attestation doc advertises. Pin encryption to
+   *  this so `/tee/public-key` can't serve a different key than the attested one
+   *  (split view). Only set when the DCAP verification path completed. */
+  teePublicKey?: string
 }
 
 // Find a 64-byte reportData anywhere in the verified TD report object.
@@ -150,7 +154,7 @@ export async function verifyQuote(
     checks.push({ name: 'measurement (soft-pin: displayed)', pass: true, detail: `mrtd=${(measurement.mrtd ?? 'n/a').slice(0, 16)}… rtmr=${(measurement.rtmr ?? 'n/a').slice(0, 16)}…` })
   }
 
-  return { ok: checks.every((c) => c.pass), checks, tdxQuoteDigest, measurement }
+  return { ok: checks.every((c) => c.pass), checks, tdxQuoteDigest, measurement, teePublicKey: att.teePublicKey }
 }
 
 /**
