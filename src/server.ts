@@ -17,6 +17,7 @@ import { readFileSync } from 'node:fs'
 import { privateKeyToAccount } from 'viem/accounts'
 import { z } from 'zod'
 import { config, resolveMode, tempoChain, isMainnet, type PrivacyMode } from './config.js'
+import { mainnetGuardErrors } from './mainnetGuard.js'
 import { teeProcess, fetchAttestation, fetchTeePublicKeyRaw, chunk } from './upstream.js'
 import { log } from './logger.js'
 import { PROOF_SENTINEL } from './proofSentinel.js'
@@ -43,6 +44,19 @@ const ContentBody = z.object({
 const settlementAccount = config.recipientPrivateKey ? privateKeyToAccount(config.recipientPrivateKey) : undefined
 if (settlementAccount && config.recipient.toLowerCase() !== settlementAccount.address.toLowerCase())
   log.warn('recipient_mismatch', { recipient: config.recipient, settlementAccount: settlementAccount.address })
+
+// ── Mainnet safety gate — fail closed before any real USDC.e can move (defects #1/#3/#4).
+// Testnet is unaffected (mainnetGuardErrors returns [] when !isMainnet).
+const guardErrors = mainnetGuardErrors({
+  isMainnet,
+  recipient: config.recipient,
+  secretKey: config.secretKey,
+  settlementAddress: settlementAccount?.address,
+})
+if (guardErrors.length) {
+  for (const reason of guardErrors) log.error('mainnet_guard', { reason })
+  process.exit(1)
+}
 
 const mppx = Mppx.create({
   methods: [
